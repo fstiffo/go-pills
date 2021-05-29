@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -11,29 +13,103 @@ type Product struct {
 	Price uint
 }
 
+type Medication struct {
+	gorm.Model
+	BrandName    string
+	Manufacturer string
+	DrugName     string
+	Strength     uint
+	Unity        string
+	Quantity     uint
+	Purchases    []Purchase
+}
+
+type Prescription struct {
+	gorm.Model
+	Date     time.Time
+	DrugName string
+	Dose     uint
+	Unity    string
+	Days     uint
+}
+
+type Purchase struct {
+	gorm.Model
+	Date         time.Time
+	MedicationID uint
+	Medication   Medication `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Quantity     uint
+}
+
 func main() {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("pills.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Product{})
+	db.Exec("DROP TABLE IF EXISTS medications;DROP TABLE IF EXISTS prescriptions;DROP TABLE IF EXISTS purchases")
+	db.AutoMigrate(&Medication{})
+	db.AutoMigrate(&Prescription{})
+	db.AutoMigrate(&Purchase{})
 
 	// Create
-	db.Create(&Product{Code: "D42", Price: 100})
+	m1 := Medication{
+		Model:        gorm.Model{},
+		BrandName:    "Tachiprina",
+		Manufacturer: "Angelini",
+		DrugName:     "paracetamolo",
+		Strength:     1000,
+		Unity:        "mg",
+		Quantity:     20,
+	}
+	db.Create(&m1)
 
+	m2 := Medication{
+		Model:        gorm.Model{},
+		BrandName:    "Cardisoaspirin",
+		Manufacturer: "Bayer",
+		DrugName:     "acido acetilsalicilico",
+		Strength:     100,
+		Unity:        "mg",
+		Quantity:     30,
+	}
+	db.Create(&m2)
+
+	db.Create(&Prescription{
+		Model:    gorm.Model{},
+		Date:     time.Now(),
+		DrugName: "acido acetilsalicilico",
+		Dose:     100,
+		Unity:    "mg",
+		Days:     1,
+	})
+	db.Create(&Prescription{
+		Model:    gorm.Model{},
+		Date:     time.Now(),
+		DrugName: "paracetamolo",
+		Dose:     500,
+		Unity:    "mg",
+		Days:     7,
+	})
+
+	db.Create(&Purchase{
+		Model:      gorm.Model{},
+		Date:       time.Now(),
+		Medication: m1,
+		Quantity:   1,
+	})
+	db.Create(&Purchase{
+		Model:      gorm.Model{},
+		Date:       time.Now(),
+		Medication: m2,
+		Quantity:   3,
+	})
 	// Read
-	var product Product
-	db.First(&product, 1)                 // find product with integer primary key
-	db.First(&product, "code = ?", "D42") // find product with code D42
 
 	// Update - update product's price to 200
-	db.Model(&product).Update("Price", 200)
 	// Update - update multiple fields
-	db.Model(&product).Updates(Product{Price: 200, Code: "F42"}) // non-zero fields
-	db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
 
 	// Delete - delete product
-	db.Delete(&product, 1)
+	db.Select("Purchases").Delete(&m1)
 }
