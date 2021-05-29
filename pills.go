@@ -1,30 +1,39 @@
 package main
 
-import "github.com/pterm/pterm"
+import (
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
+
+type Product struct {
+	gorm.Model
+	Code  string
+	Price uint
+}
 
 func main() {
-	// Create a new header as a fork from pterm.DefaultHeader.
-	// ┌ new header variable
-	// │                 ┌ Fork it from the default header
-	// │                 │            ┌ Set options
-	header := pterm.DefaultHeader.WithBackgroundStyle(pterm.NewStyle(pterm.BgRed))
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
 
-	// Print the header centered in your terminal.
-	//      ┌ Use the default CenterPrinter
-	//      │              ┌ Print a string ending with a new line
-	//      │              │      ┌ Use our new header to format the input string
-	pterm.DefaultCenter.Println(header.Sprint("Hello, Pills"))
+	// Migrate the schema
+	db.AutoMigrate(&Product{})
 
-	// Print a big text to the terminal.
-	//          ┌ Use the default BigTextPrinter
-	//          │              ┌ Set the Letters option
-	//          │              │                   ┌ Generate Letters from string
-	//          │              │                   │                            ┌ Render output to the console
-	_ = pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("Hello Pills!")).Render()
+	// Create
+	db.Create(&Product{Code: "D42", Price: 100})
 
-	// ┌──────────────────────────────────────────────────────────┐
-	// │There are many more features, which are waiting for you :)│
-	// └──────────────────────────────────────────────────────────┘
+	// Read
+	var product Product
+	db.First(&product, 1)                 // find product with integer primary key
+	db.First(&product, "code = ?", "D42") // find product with code D42
 
-	// TODO: If you want, you can try to make the big text centered.
+	// Update - update product's price to 200
+	db.Model(&product).Update("Price", 200)
+	// Update - update multiple fields
+	db.Model(&product).Updates(Product{Price: 200, Code: "F42"}) // non-zero fields
+	db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
+
+	// Delete - delete product
+	db.Delete(&product, 1)
 }
