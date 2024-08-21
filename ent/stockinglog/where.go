@@ -60,9 +60,14 @@ func StockedAt(v time.Time) predicate.StockingLog {
 	return predicate.StockingLog(sql.FieldEQ(FieldStockedAt, v))
 }
 
-// Quantity applies equality check predicate on the "quantity" field. It's identical to QuantityEQ.
-func Quantity(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldEQ(FieldQuantity, v))
+// Boxes applies equality check predicate on the "boxes" field. It's identical to BoxesEQ.
+func Boxes(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldEQ(FieldBoxes, v))
+}
+
+// Units applies equality check predicate on the "units" field. It's identical to UnitsEQ.
+func Units(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldEQ(FieldUnits, v))
 }
 
 // StockedAtEQ applies the EQ predicate on the "stocked_at" field.
@@ -105,44 +110,104 @@ func StockedAtLTE(v time.Time) predicate.StockingLog {
 	return predicate.StockingLog(sql.FieldLTE(FieldStockedAt, v))
 }
 
-// QuantityEQ applies the EQ predicate on the "quantity" field.
-func QuantityEQ(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldEQ(FieldQuantity, v))
+// StockedAtIsNil applies the IsNil predicate on the "stocked_at" field.
+func StockedAtIsNil() predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldIsNull(FieldStockedAt))
 }
 
-// QuantityNEQ applies the NEQ predicate on the "quantity" field.
-func QuantityNEQ(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldNEQ(FieldQuantity, v))
+// StockedAtNotNil applies the NotNil predicate on the "stocked_at" field.
+func StockedAtNotNil() predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNotNull(FieldStockedAt))
 }
 
-// QuantityIn applies the In predicate on the "quantity" field.
-func QuantityIn(vs ...int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldIn(FieldQuantity, vs...))
+// BoxesEQ applies the EQ predicate on the "boxes" field.
+func BoxesEQ(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldEQ(FieldBoxes, v))
 }
 
-// QuantityNotIn applies the NotIn predicate on the "quantity" field.
-func QuantityNotIn(vs ...int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldNotIn(FieldQuantity, vs...))
+// BoxesNEQ applies the NEQ predicate on the "boxes" field.
+func BoxesNEQ(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNEQ(FieldBoxes, v))
 }
 
-// QuantityGT applies the GT predicate on the "quantity" field.
-func QuantityGT(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldGT(FieldQuantity, v))
+// BoxesIn applies the In predicate on the "boxes" field.
+func BoxesIn(vs ...int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldIn(FieldBoxes, vs...))
 }
 
-// QuantityGTE applies the GTE predicate on the "quantity" field.
-func QuantityGTE(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldGTE(FieldQuantity, v))
+// BoxesNotIn applies the NotIn predicate on the "boxes" field.
+func BoxesNotIn(vs ...int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNotIn(FieldBoxes, vs...))
 }
 
-// QuantityLT applies the LT predicate on the "quantity" field.
-func QuantityLT(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldLT(FieldQuantity, v))
+// BoxesGT applies the GT predicate on the "boxes" field.
+func BoxesGT(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldGT(FieldBoxes, v))
 }
 
-// QuantityLTE applies the LTE predicate on the "quantity" field.
-func QuantityLTE(v int) predicate.StockingLog {
-	return predicate.StockingLog(sql.FieldLTE(FieldQuantity, v))
+// BoxesGTE applies the GTE predicate on the "boxes" field.
+func BoxesGTE(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldGTE(FieldBoxes, v))
+}
+
+// BoxesLT applies the LT predicate on the "boxes" field.
+func BoxesLT(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldLT(FieldBoxes, v))
+}
+
+// BoxesLTE applies the LTE predicate on the "boxes" field.
+func BoxesLTE(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldLTE(FieldBoxes, v))
+}
+
+// BoxesIsNil applies the IsNil predicate on the "boxes" field.
+func BoxesIsNil() predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldIsNull(FieldBoxes))
+}
+
+// BoxesNotNil applies the NotNil predicate on the "boxes" field.
+func BoxesNotNil() predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNotNull(FieldBoxes))
+}
+
+// UnitsEQ applies the EQ predicate on the "units" field.
+func UnitsEQ(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldEQ(FieldUnits, v))
+}
+
+// UnitsNEQ applies the NEQ predicate on the "units" field.
+func UnitsNEQ(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNEQ(FieldUnits, v))
+}
+
+// UnitsIn applies the In predicate on the "units" field.
+func UnitsIn(vs ...int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldIn(FieldUnits, vs...))
+}
+
+// UnitsNotIn applies the NotIn predicate on the "units" field.
+func UnitsNotIn(vs ...int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldNotIn(FieldUnits, vs...))
+}
+
+// UnitsGT applies the GT predicate on the "units" field.
+func UnitsGT(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldGT(FieldUnits, v))
+}
+
+// UnitsGTE applies the GTE predicate on the "units" field.
+func UnitsGTE(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldGTE(FieldUnits, v))
+}
+
+// UnitsLT applies the LT predicate on the "units" field.
+func UnitsLT(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldLT(FieldUnits, v))
+}
+
+// UnitsLTE applies the LTE predicate on the "units" field.
+func UnitsLTE(v int) predicate.StockingLog {
+	return predicate.StockingLog(sql.FieldLTE(FieldUnits, v))
 }
 
 // HasMedicine applies the HasEdge predicate on the "medicine" edge.
@@ -160,6 +225,29 @@ func HasMedicine() predicate.StockingLog {
 func HasMedicineWith(preds ...predicate.Medicine) predicate.StockingLog {
 	return predicate.StockingLog(func(s *sql.Selector) {
 		step := newMedicineStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasActiveIngredient applies the HasEdge predicate on the "active_ingredient" edge.
+func HasActiveIngredient() predicate.StockingLog {
+	return predicate.StockingLog(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ActiveIngredientTable, ActiveIngredientColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasActiveIngredientWith applies the HasEdge predicate on the "active_ingredient" edge with a given conditions (other predicates).
+func HasActiveIngredientWith(preds ...predicate.ActiveIngredient) predicate.StockingLog {
+	return predicate.StockingLog(func(s *sql.Selector) {
+		step := newActiveIngredientStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

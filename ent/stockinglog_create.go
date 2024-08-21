@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/stockinglog"
 	"time"
@@ -27,9 +28,31 @@ func (slc *StockingLogCreate) SetStockedAt(t time.Time) *StockingLogCreate {
 	return slc
 }
 
-// SetQuantity sets the "quantity" field.
-func (slc *StockingLogCreate) SetQuantity(i int) *StockingLogCreate {
-	slc.mutation.SetQuantity(i)
+// SetNillableStockedAt sets the "stocked_at" field if the given value is not nil.
+func (slc *StockingLogCreate) SetNillableStockedAt(t *time.Time) *StockingLogCreate {
+	if t != nil {
+		slc.SetStockedAt(*t)
+	}
+	return slc
+}
+
+// SetBoxes sets the "boxes" field.
+func (slc *StockingLogCreate) SetBoxes(i int) *StockingLogCreate {
+	slc.mutation.SetBoxes(i)
+	return slc
+}
+
+// SetNillableBoxes sets the "boxes" field if the given value is not nil.
+func (slc *StockingLogCreate) SetNillableBoxes(i *int) *StockingLogCreate {
+	if i != nil {
+		slc.SetBoxes(*i)
+	}
+	return slc
+}
+
+// SetUnits sets the "units" field.
+func (slc *StockingLogCreate) SetUnits(i int) *StockingLogCreate {
+	slc.mutation.SetUnits(i)
 	return slc
 }
 
@@ -52,6 +75,25 @@ func (slc *StockingLogCreate) SetMedicine(m *Medicine) *StockingLogCreate {
 	return slc.SetMedicineID(m.ID)
 }
 
+// SetActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID.
+func (slc *StockingLogCreate) SetActiveIngredientID(id int) *StockingLogCreate {
+	slc.mutation.SetActiveIngredientID(id)
+	return slc
+}
+
+// SetNillableActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID if the given value is not nil.
+func (slc *StockingLogCreate) SetNillableActiveIngredientID(id *int) *StockingLogCreate {
+	if id != nil {
+		slc = slc.SetActiveIngredientID(*id)
+	}
+	return slc
+}
+
+// SetActiveIngredient sets the "active_ingredient" edge to the ActiveIngredient entity.
+func (slc *StockingLogCreate) SetActiveIngredient(a *ActiveIngredient) *StockingLogCreate {
+	return slc.SetActiveIngredientID(a.ID)
+}
+
 // Mutation returns the StockingLogMutation object of the builder.
 func (slc *StockingLogCreate) Mutation() *StockingLogMutation {
 	return slc.mutation
@@ -59,6 +101,7 @@ func (slc *StockingLogCreate) Mutation() *StockingLogMutation {
 
 // Save creates the StockingLog in the database.
 func (slc *StockingLogCreate) Save(ctx context.Context) (*StockingLog, error) {
+	slc.defaults()
 	return withHooks(ctx, slc.sqlSave, slc.mutation, slc.hooks)
 }
 
@@ -84,17 +127,31 @@ func (slc *StockingLogCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (slc *StockingLogCreate) defaults() {
+	if _, ok := slc.mutation.StockedAt(); !ok {
+		v := stockinglog.DefaultStockedAt()
+		slc.mutation.SetStockedAt(v)
+	}
+	if _, ok := slc.mutation.Boxes(); !ok {
+		v := stockinglog.DefaultBoxes
+		slc.mutation.SetBoxes(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (slc *StockingLogCreate) check() error {
-	if _, ok := slc.mutation.StockedAt(); !ok {
-		return &ValidationError{Name: "stocked_at", err: errors.New(`ent: missing required field "StockingLog.stocked_at"`)}
+	if v, ok := slc.mutation.Boxes(); ok {
+		if err := stockinglog.BoxesValidator(v); err != nil {
+			return &ValidationError{Name: "boxes", err: fmt.Errorf(`ent: validator failed for field "StockingLog.boxes": %w`, err)}
+		}
 	}
-	if _, ok := slc.mutation.Quantity(); !ok {
-		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "StockingLog.quantity"`)}
+	if _, ok := slc.mutation.Units(); !ok {
+		return &ValidationError{Name: "units", err: errors.New(`ent: missing required field "StockingLog.units"`)}
 	}
-	if v, ok := slc.mutation.Quantity(); ok {
-		if err := stockinglog.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "StockingLog.quantity": %w`, err)}
+	if v, ok := slc.mutation.Units(); ok {
+		if err := stockinglog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "StockingLog.units": %w`, err)}
 		}
 	}
 	return nil
@@ -127,9 +184,13 @@ func (slc *StockingLogCreate) createSpec() (*StockingLog, *sqlgraph.CreateSpec) 
 		_spec.SetField(stockinglog.FieldStockedAt, field.TypeTime, value)
 		_node.StockedAt = value
 	}
-	if value, ok := slc.mutation.Quantity(); ok {
-		_spec.SetField(stockinglog.FieldQuantity, field.TypeInt, value)
-		_node.Quantity = value
+	if value, ok := slc.mutation.Boxes(); ok {
+		_spec.SetField(stockinglog.FieldBoxes, field.TypeInt, value)
+		_node.Boxes = value
+	}
+	if value, ok := slc.mutation.Units(); ok {
+		_spec.SetField(stockinglog.FieldUnits, field.TypeInt, value)
+		_node.Units = value
 	}
 	if nodes := slc.mutation.MedicineIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -146,6 +207,23 @@ func (slc *StockingLogCreate) createSpec() (*StockingLog, *sqlgraph.CreateSpec) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.medicine_stocking_logs = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := slc.mutation.ActiveIngredientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   stockinglog.ActiveIngredientTable,
+			Columns: []string{stockinglog.ActiveIngredientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeingredient.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.active_ingredient_stocking_logs = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -169,6 +247,7 @@ func (slcb *StockingLogCreateBulk) Save(ctx context.Context) ([]*StockingLog, er
 	for i := range slcb.builders {
 		func(i int, root context.Context) {
 			builder := slcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*StockingLogMutation)
 				if !ok {

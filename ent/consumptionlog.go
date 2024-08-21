@@ -20,11 +20,14 @@ type ConsumptionLog struct {
 	ID int `json:"id,omitempty"`
 	// ConsumedAt holds the value of the "consumed_at" field.
 	ConsumedAt time.Time `json:"consumed_at,omitempty"`
+	// Units holds the value of the "units" field.
+	Units int `json:"units,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ConsumptionLogQuery when eager-loading is set.
-	Edges                         ConsumptionLogEdges `json:"edges"`
-	prescription_comsumption_logs *int
-	selectValues                  sql.SelectValues
+	Edges                              ConsumptionLogEdges `json:"edges"`
+	active_ingredient_consumption_logs *int
+	prescription_comsumption_logs      *int
+	selectValues                       sql.SelectValues
 }
 
 // ConsumptionLogEdges holds the relations/edges for other nodes in the graph.
@@ -52,11 +55,13 @@ func (*ConsumptionLog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case consumptionlog.FieldID:
+		case consumptionlog.FieldID, consumptionlog.FieldUnits:
 			values[i] = new(sql.NullInt64)
 		case consumptionlog.FieldConsumedAt:
 			values[i] = new(sql.NullTime)
-		case consumptionlog.ForeignKeys[0]: // prescription_comsumption_logs
+		case consumptionlog.ForeignKeys[0]: // active_ingredient_consumption_logs
+			values[i] = new(sql.NullInt64)
+		case consumptionlog.ForeignKeys[1]: // prescription_comsumption_logs
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -85,7 +90,20 @@ func (cl *ConsumptionLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				cl.ConsumedAt = value.Time
 			}
+		case consumptionlog.FieldUnits:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field units", values[i])
+			} else if value.Valid {
+				cl.Units = int(value.Int64)
+			}
 		case consumptionlog.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field active_ingredient_consumption_logs", value)
+			} else if value.Valid {
+				cl.active_ingredient_consumption_logs = new(int)
+				*cl.active_ingredient_consumption_logs = int(value.Int64)
+			}
+		case consumptionlog.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field prescription_comsumption_logs", value)
 			} else if value.Valid {
@@ -135,6 +153,9 @@ func (cl *ConsumptionLog) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", cl.ID))
 	builder.WriteString("consumed_at=")
 	builder.WriteString(cl.ConsumedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("units=")
+	builder.WriteString(fmt.Sprintf("%v", cl.Units))
 	builder.WriteByte(')')
 	return builder.String()
 }

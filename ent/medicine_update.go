@@ -9,9 +9,7 @@ import (
 	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -80,20 +78,6 @@ func (mu *MedicineUpdate) AddDosage(f float64) *MedicineUpdate {
 	return mu
 }
 
-// SetUnit sets the "unit" field.
-func (mu *MedicineUpdate) SetUnit(s string) *MedicineUpdate {
-	mu.mutation.SetUnit(s)
-	return mu
-}
-
-// SetNillableUnit sets the "unit" field if the given value is not nil.
-func (mu *MedicineUpdate) SetNillableUnit(s *string) *MedicineUpdate {
-	if s != nil {
-		mu.SetUnit(*s)
-	}
-	return mu
-}
-
 // SetAtc sets the "atc" field.
 func (mu *MedicineUpdate) SetAtc(s string) *MedicineUpdate {
 	mu.mutation.SetAtc(s)
@@ -157,62 +141,6 @@ func (mu *MedicineUpdate) AddBoxSize(i int) *MedicineUpdate {
 	return mu
 }
 
-// SetStock sets the "stock" field.
-func (mu *MedicineUpdate) SetStock(f float32) *MedicineUpdate {
-	mu.mutation.ResetStock()
-	mu.mutation.SetStock(f)
-	return mu
-}
-
-// SetNillableStock sets the "stock" field if the given value is not nil.
-func (mu *MedicineUpdate) SetNillableStock(f *float32) *MedicineUpdate {
-	if f != nil {
-		mu.SetStock(*f)
-	}
-	return mu
-}
-
-// AddStock adds f to the "stock" field.
-func (mu *MedicineUpdate) AddStock(f float32) *MedicineUpdate {
-	mu.mutation.AddStock(f)
-	return mu
-}
-
-// ClearStock clears the value of the "stock" field.
-func (mu *MedicineUpdate) ClearStock() *MedicineUpdate {
-	mu.mutation.ClearStock()
-	return mu
-}
-
-// SetLastStockUpdate sets the "last_stock_update" field.
-func (mu *MedicineUpdate) SetLastStockUpdate(t time.Time) *MedicineUpdate {
-	mu.mutation.SetLastStockUpdate(t)
-	return mu
-}
-
-// SetNillableLastStockUpdate sets the "last_stock_update" field if the given value is not nil.
-func (mu *MedicineUpdate) SetNillableLastStockUpdate(t *time.Time) *MedicineUpdate {
-	if t != nil {
-		mu.SetLastStockUpdate(*t)
-	}
-	return mu
-}
-
-// AddPurchaseIDs adds the "purchases" edge to the Purchase entity by IDs.
-func (mu *MedicineUpdate) AddPurchaseIDs(ids ...int) *MedicineUpdate {
-	mu.mutation.AddPurchaseIDs(ids...)
-	return mu
-}
-
-// AddPurchases adds the "purchases" edges to the Purchase entity.
-func (mu *MedicineUpdate) AddPurchases(p ...*Purchase) *MedicineUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return mu.AddPurchaseIDs(ids...)
-}
-
 // AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
 func (mu *MedicineUpdate) AddStockingLogIDs(ids ...int) *MedicineUpdate {
 	mu.mutation.AddStockingLogIDs(ids...)
@@ -250,27 +178,6 @@ func (mu *MedicineUpdate) SetActiveIngredient(a *ActiveIngredient) *MedicineUpda
 // Mutation returns the MedicineMutation object of the builder.
 func (mu *MedicineUpdate) Mutation() *MedicineMutation {
 	return mu.mutation
-}
-
-// ClearPurchases clears all "purchases" edges to the Purchase entity.
-func (mu *MedicineUpdate) ClearPurchases() *MedicineUpdate {
-	mu.mutation.ClearPurchases()
-	return mu
-}
-
-// RemovePurchaseIDs removes the "purchases" edge to Purchase entities by IDs.
-func (mu *MedicineUpdate) RemovePurchaseIDs(ids ...int) *MedicineUpdate {
-	mu.mutation.RemovePurchaseIDs(ids...)
-	return mu
-}
-
-// RemovePurchases removes "purchases" edges to Purchase entities.
-func (mu *MedicineUpdate) RemovePurchases(p ...*Purchase) *MedicineUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return mu.RemovePurchaseIDs(ids...)
 }
 
 // ClearStockingLogs clears all "stocking_logs" edges to the StockingLog entity.
@@ -344,11 +251,6 @@ func (mu *MedicineUpdate) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Medicine.dosage": %w`, err)}
 		}
 	}
-	if v, ok := mu.mutation.Unit(); ok {
-		if err := medicine.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Medicine.unit": %w`, err)}
-		}
-	}
 	if v, ok := mu.mutation.Atc(); ok {
 		if err := medicine.AtcValidator(v); err != nil {
 			return &ValidationError{Name: "atc", err: fmt.Errorf(`ent: validator failed for field "Medicine.atc": %w`, err)}
@@ -386,9 +288,6 @@ func (mu *MedicineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.AddedDosage(); ok {
 		_spec.AddField(medicine.FieldDosage, field.TypeFloat64, value)
 	}
-	if value, ok := mu.mutation.Unit(); ok {
-		_spec.SetField(medicine.FieldUnit, field.TypeString, value)
-	}
 	if value, ok := mu.mutation.Atc(); ok {
 		_spec.SetField(medicine.FieldAtc, field.TypeString, value)
 	}
@@ -403,63 +302,6 @@ func (mu *MedicineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.AddedBoxSize(); ok {
 		_spec.AddField(medicine.FieldBoxSize, field.TypeInt, value)
-	}
-	if value, ok := mu.mutation.Stock(); ok {
-		_spec.SetField(medicine.FieldStock, field.TypeFloat32, value)
-	}
-	if value, ok := mu.mutation.AddedStock(); ok {
-		_spec.AddField(medicine.FieldStock, field.TypeFloat32, value)
-	}
-	if mu.mutation.StockCleared() {
-		_spec.ClearField(medicine.FieldStock, field.TypeFloat32)
-	}
-	if value, ok := mu.mutation.LastStockUpdate(); ok {
-		_spec.SetField(medicine.FieldLastStockUpdate, field.TypeTime, value)
-	}
-	if mu.mutation.PurchasesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.RemovedPurchasesIDs(); len(nodes) > 0 && !mu.mutation.PurchasesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := mu.mutation.PurchasesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if mu.mutation.StockingLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -604,20 +446,6 @@ func (muo *MedicineUpdateOne) AddDosage(f float64) *MedicineUpdateOne {
 	return muo
 }
 
-// SetUnit sets the "unit" field.
-func (muo *MedicineUpdateOne) SetUnit(s string) *MedicineUpdateOne {
-	muo.mutation.SetUnit(s)
-	return muo
-}
-
-// SetNillableUnit sets the "unit" field if the given value is not nil.
-func (muo *MedicineUpdateOne) SetNillableUnit(s *string) *MedicineUpdateOne {
-	if s != nil {
-		muo.SetUnit(*s)
-	}
-	return muo
-}
-
 // SetAtc sets the "atc" field.
 func (muo *MedicineUpdateOne) SetAtc(s string) *MedicineUpdateOne {
 	muo.mutation.SetAtc(s)
@@ -681,62 +509,6 @@ func (muo *MedicineUpdateOne) AddBoxSize(i int) *MedicineUpdateOne {
 	return muo
 }
 
-// SetStock sets the "stock" field.
-func (muo *MedicineUpdateOne) SetStock(f float32) *MedicineUpdateOne {
-	muo.mutation.ResetStock()
-	muo.mutation.SetStock(f)
-	return muo
-}
-
-// SetNillableStock sets the "stock" field if the given value is not nil.
-func (muo *MedicineUpdateOne) SetNillableStock(f *float32) *MedicineUpdateOne {
-	if f != nil {
-		muo.SetStock(*f)
-	}
-	return muo
-}
-
-// AddStock adds f to the "stock" field.
-func (muo *MedicineUpdateOne) AddStock(f float32) *MedicineUpdateOne {
-	muo.mutation.AddStock(f)
-	return muo
-}
-
-// ClearStock clears the value of the "stock" field.
-func (muo *MedicineUpdateOne) ClearStock() *MedicineUpdateOne {
-	muo.mutation.ClearStock()
-	return muo
-}
-
-// SetLastStockUpdate sets the "last_stock_update" field.
-func (muo *MedicineUpdateOne) SetLastStockUpdate(t time.Time) *MedicineUpdateOne {
-	muo.mutation.SetLastStockUpdate(t)
-	return muo
-}
-
-// SetNillableLastStockUpdate sets the "last_stock_update" field if the given value is not nil.
-func (muo *MedicineUpdateOne) SetNillableLastStockUpdate(t *time.Time) *MedicineUpdateOne {
-	if t != nil {
-		muo.SetLastStockUpdate(*t)
-	}
-	return muo
-}
-
-// AddPurchaseIDs adds the "purchases" edge to the Purchase entity by IDs.
-func (muo *MedicineUpdateOne) AddPurchaseIDs(ids ...int) *MedicineUpdateOne {
-	muo.mutation.AddPurchaseIDs(ids...)
-	return muo
-}
-
-// AddPurchases adds the "purchases" edges to the Purchase entity.
-func (muo *MedicineUpdateOne) AddPurchases(p ...*Purchase) *MedicineUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return muo.AddPurchaseIDs(ids...)
-}
-
 // AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
 func (muo *MedicineUpdateOne) AddStockingLogIDs(ids ...int) *MedicineUpdateOne {
 	muo.mutation.AddStockingLogIDs(ids...)
@@ -774,27 +546,6 @@ func (muo *MedicineUpdateOne) SetActiveIngredient(a *ActiveIngredient) *Medicine
 // Mutation returns the MedicineMutation object of the builder.
 func (muo *MedicineUpdateOne) Mutation() *MedicineMutation {
 	return muo.mutation
-}
-
-// ClearPurchases clears all "purchases" edges to the Purchase entity.
-func (muo *MedicineUpdateOne) ClearPurchases() *MedicineUpdateOne {
-	muo.mutation.ClearPurchases()
-	return muo
-}
-
-// RemovePurchaseIDs removes the "purchases" edge to Purchase entities by IDs.
-func (muo *MedicineUpdateOne) RemovePurchaseIDs(ids ...int) *MedicineUpdateOne {
-	muo.mutation.RemovePurchaseIDs(ids...)
-	return muo
-}
-
-// RemovePurchases removes "purchases" edges to Purchase entities.
-func (muo *MedicineUpdateOne) RemovePurchases(p ...*Purchase) *MedicineUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return muo.RemovePurchaseIDs(ids...)
 }
 
 // ClearStockingLogs clears all "stocking_logs" edges to the StockingLog entity.
@@ -881,11 +632,6 @@ func (muo *MedicineUpdateOne) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Medicine.dosage": %w`, err)}
 		}
 	}
-	if v, ok := muo.mutation.Unit(); ok {
-		if err := medicine.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Medicine.unit": %w`, err)}
-		}
-	}
 	if v, ok := muo.mutation.Atc(); ok {
 		if err := medicine.AtcValidator(v); err != nil {
 			return &ValidationError{Name: "atc", err: fmt.Errorf(`ent: validator failed for field "Medicine.atc": %w`, err)}
@@ -940,9 +686,6 @@ func (muo *MedicineUpdateOne) sqlSave(ctx context.Context) (_node *Medicine, err
 	if value, ok := muo.mutation.AddedDosage(); ok {
 		_spec.AddField(medicine.FieldDosage, field.TypeFloat64, value)
 	}
-	if value, ok := muo.mutation.Unit(); ok {
-		_spec.SetField(medicine.FieldUnit, field.TypeString, value)
-	}
 	if value, ok := muo.mutation.Atc(); ok {
 		_spec.SetField(medicine.FieldAtc, field.TypeString, value)
 	}
@@ -957,63 +700,6 @@ func (muo *MedicineUpdateOne) sqlSave(ctx context.Context) (_node *Medicine, err
 	}
 	if value, ok := muo.mutation.AddedBoxSize(); ok {
 		_spec.AddField(medicine.FieldBoxSize, field.TypeInt, value)
-	}
-	if value, ok := muo.mutation.Stock(); ok {
-		_spec.SetField(medicine.FieldStock, field.TypeFloat32, value)
-	}
-	if value, ok := muo.mutation.AddedStock(); ok {
-		_spec.AddField(medicine.FieldStock, field.TypeFloat32, value)
-	}
-	if muo.mutation.StockCleared() {
-		_spec.ClearField(medicine.FieldStock, field.TypeFloat32)
-	}
-	if value, ok := muo.mutation.LastStockUpdate(); ok {
-		_spec.SetField(medicine.FieldLastStockUpdate, field.TypeTime, value)
-	}
-	if muo.mutation.PurchasesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.RemovedPurchasesIDs(); len(nodes) > 0 && !muo.mutation.PurchasesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := muo.mutation.PurchasesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if muo.mutation.StockingLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -15,7 +15,6 @@ import (
 	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/prescription"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
 
 	"entgo.io/ent"
@@ -37,8 +36,6 @@ type Client struct {
 	Medicine *MedicineClient
 	// Prescription is the client for interacting with the Prescription builders.
 	Prescription *PrescriptionClient
-	// Purchase is the client for interacting with the Purchase builders.
-	Purchase *PurchaseClient
 	// StockingLog is the client for interacting with the StockingLog builders.
 	StockingLog *StockingLogClient
 }
@@ -56,7 +53,6 @@ func (c *Client) init() {
 	c.ConsumptionLog = NewConsumptionLogClient(c.config)
 	c.Medicine = NewMedicineClient(c.config)
 	c.Prescription = NewPrescriptionClient(c.config)
-	c.Purchase = NewPurchaseClient(c.config)
 	c.StockingLog = NewStockingLogClient(c.config)
 }
 
@@ -154,7 +150,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ConsumptionLog:   NewConsumptionLogClient(cfg),
 		Medicine:         NewMedicineClient(cfg),
 		Prescription:     NewPrescriptionClient(cfg),
-		Purchase:         NewPurchaseClient(cfg),
 		StockingLog:      NewStockingLogClient(cfg),
 	}, nil
 }
@@ -179,7 +174,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ConsumptionLog:   NewConsumptionLogClient(cfg),
 		Medicine:         NewMedicineClient(cfg),
 		Prescription:     NewPrescriptionClient(cfg),
-		Purchase:         NewPurchaseClient(cfg),
 		StockingLog:      NewStockingLogClient(cfg),
 	}, nil
 }
@@ -209,23 +203,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	for _, n := range []interface{ Use(...Hook) }{
-		c.ActiveIngredient, c.ConsumptionLog, c.Medicine, c.Prescription, c.Purchase,
-		c.StockingLog,
-	} {
-		n.Use(hooks...)
-	}
+	c.ActiveIngredient.Use(hooks...)
+	c.ConsumptionLog.Use(hooks...)
+	c.Medicine.Use(hooks...)
+	c.Prescription.Use(hooks...)
+	c.StockingLog.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.ActiveIngredient, c.ConsumptionLog, c.Medicine, c.Prescription, c.Purchase,
-		c.StockingLog,
-	} {
-		n.Intercept(interceptors...)
-	}
+	c.ActiveIngredient.Intercept(interceptors...)
+	c.ConsumptionLog.Intercept(interceptors...)
+	c.Medicine.Intercept(interceptors...)
+	c.Prescription.Intercept(interceptors...)
+	c.StockingLog.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -239,8 +231,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Medicine.mutate(ctx, m)
 	case *PrescriptionMutation:
 		return c.Prescription.mutate(ctx, m)
-	case *PurchaseMutation:
-		return c.Purchase.mutate(ctx, m)
 	case *StockingLogMutation:
 		return c.StockingLog.mutate(ctx, m)
 	default:
@@ -381,6 +371,38 @@ func (c *ActiveIngredientClient) QueryPrescriptions(ai *ActiveIngredient) *Presc
 			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, id),
 			sqlgraph.To(prescription.Table, prescription.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.PrescriptionsTable, activeingredient.PrescriptionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStockingLogs queries the stocking_logs edge of a ActiveIngredient.
+func (c *ActiveIngredientClient) QueryStockingLogs(ai *ActiveIngredient) *StockingLogQuery {
+	query := (&StockingLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, id),
+			sqlgraph.To(stockinglog.Table, stockinglog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.StockingLogsTable, activeingredient.StockingLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConsumptionLogs queries the consumption_logs edge of a ActiveIngredient.
+func (c *ActiveIngredientClient) QueryConsumptionLogs(ai *ActiveIngredient) *ConsumptionLogQuery {
+	query := (&ConsumptionLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ai.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, id),
+			sqlgraph.To(consumptionlog.Table, consumptionlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.ConsumptionLogsTable, activeingredient.ConsumptionLogsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ai.driver.Dialect(), step)
 		return fromV, nil
@@ -670,22 +692,6 @@ func (c *MedicineClient) GetX(ctx context.Context, id int) *Medicine {
 	return obj
 }
 
-// QueryPurchases queries the purchases edge of a Medicine.
-func (c *MedicineClient) QueryPurchases(m *Medicine) *PurchaseQuery {
-	query := (&PurchaseClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(medicine.Table, medicine.FieldID, id),
-			sqlgraph.To(purchase.Table, purchase.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, medicine.PurchasesTable, medicine.PurchasesColumn),
-		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryStockingLogs queries the stocking_logs edge of a Medicine.
 func (c *MedicineClient) QueryStockingLogs(m *Medicine) *StockingLogQuery {
 	query := (&StockingLogClient{config: c.config}).Query()
@@ -908,139 +914,6 @@ func (c *PrescriptionClient) mutate(ctx context.Context, m *PrescriptionMutation
 	}
 }
 
-// PurchaseClient is a client for the Purchase schema.
-type PurchaseClient struct {
-	config
-}
-
-// NewPurchaseClient returns a client for the Purchase from the given config.
-func NewPurchaseClient(c config) *PurchaseClient {
-	return &PurchaseClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `purchase.Hooks(f(g(h())))`.
-func (c *PurchaseClient) Use(hooks ...Hook) {
-	c.hooks.Purchase = append(c.hooks.Purchase, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `purchase.Intercept(f(g(h())))`.
-func (c *PurchaseClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Purchase = append(c.inters.Purchase, interceptors...)
-}
-
-// Create returns a builder for creating a Purchase entity.
-func (c *PurchaseClient) Create() *PurchaseCreate {
-	mutation := newPurchaseMutation(c.config, OpCreate)
-	return &PurchaseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Purchase entities.
-func (c *PurchaseClient) CreateBulk(builders ...*PurchaseCreate) *PurchaseCreateBulk {
-	return &PurchaseCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PurchaseClient) MapCreateBulk(slice any, setFunc func(*PurchaseCreate, int)) *PurchaseCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PurchaseCreateBulk{err: fmt.Errorf("calling to PurchaseClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PurchaseCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PurchaseCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Purchase.
-func (c *PurchaseClient) Update() *PurchaseUpdate {
-	mutation := newPurchaseMutation(c.config, OpUpdate)
-	return &PurchaseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PurchaseClient) UpdateOne(pu *Purchase) *PurchaseUpdateOne {
-	mutation := newPurchaseMutation(c.config, OpUpdateOne, withPurchase(pu))
-	return &PurchaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PurchaseClient) UpdateOneID(id int) *PurchaseUpdateOne {
-	mutation := newPurchaseMutation(c.config, OpUpdateOne, withPurchaseID(id))
-	return &PurchaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Purchase.
-func (c *PurchaseClient) Delete() *PurchaseDelete {
-	mutation := newPurchaseMutation(c.config, OpDelete)
-	return &PurchaseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PurchaseClient) DeleteOne(pu *Purchase) *PurchaseDeleteOne {
-	return c.DeleteOneID(pu.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PurchaseClient) DeleteOneID(id int) *PurchaseDeleteOne {
-	builder := c.Delete().Where(purchase.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PurchaseDeleteOne{builder}
-}
-
-// Query returns a query builder for Purchase.
-func (c *PurchaseClient) Query() *PurchaseQuery {
-	return &PurchaseQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePurchase},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Purchase entity by its id.
-func (c *PurchaseClient) Get(ctx context.Context, id int) (*Purchase, error) {
-	return c.Query().Where(purchase.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PurchaseClient) GetX(ctx context.Context, id int) *Purchase {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *PurchaseClient) Hooks() []Hook {
-	return c.hooks.Purchase
-}
-
-// Interceptors returns the client interceptors.
-func (c *PurchaseClient) Interceptors() []Interceptor {
-	return c.inters.Purchase
-}
-
-func (c *PurchaseClient) mutate(ctx context.Context, m *PurchaseMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PurchaseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PurchaseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PurchaseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PurchaseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("ent: unknown Purchase mutation op: %q", m.Op())
-	}
-}
-
 // StockingLogClient is a client for the StockingLog schema.
 type StockingLogClient struct {
 	config
@@ -1165,6 +1038,22 @@ func (c *StockingLogClient) QueryMedicine(sl *StockingLog) *MedicineQuery {
 	return query
 }
 
+// QueryActiveIngredient queries the active_ingredient edge of a StockingLog.
+func (c *StockingLogClient) QueryActiveIngredient(sl *StockingLog) *ActiveIngredientQuery {
+	query := (&ActiveIngredientClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(stockinglog.Table, stockinglog.FieldID, id),
+			sqlgraph.To(activeingredient.Table, activeingredient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, stockinglog.ActiveIngredientTable, stockinglog.ActiveIngredientColumn),
+		)
+		fromV = sqlgraph.Neighbors(sl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *StockingLogClient) Hooks() []Hook {
 	return c.hooks.StockingLog
@@ -1193,11 +1082,10 @@ func (c *StockingLogClient) mutate(ctx context.Context, m *StockingLogMutation) 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		ActiveIngredient, ConsumptionLog, Medicine, Prescription, Purchase,
-		StockingLog []ent.Hook
+		ActiveIngredient, ConsumptionLog, Medicine, Prescription, StockingLog []ent.Hook
 	}
 	inters struct {
-		ActiveIngredient, ConsumptionLog, Medicine, Prescription, Purchase,
+		ActiveIngredient, ConsumptionLog, Medicine, Prescription,
 		StockingLog []ent.Interceptor
 	}
 )

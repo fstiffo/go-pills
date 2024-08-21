@@ -11,7 +11,6 @@ import (
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
 	"fstiffo/pills/ent/prescription"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
 	"sync"
 	"time"
@@ -33,27 +32,37 @@ const (
 	TypeConsumptionLog   = "ConsumptionLog"
 	TypeMedicine         = "Medicine"
 	TypePrescription     = "Prescription"
-	TypePurchase         = "Purchase"
 	TypeStockingLog      = "StockingLog"
 )
 
 // ActiveIngredientMutation represents an operation that mutates the ActiveIngredient nodes in the graph.
 type ActiveIngredientMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	name                 *string
-	clearedFields        map[string]struct{}
-	medicines            map[int]struct{}
-	removedmedicines     map[int]struct{}
-	clearedmedicines     bool
-	prescriptions        map[int]struct{}
-	removedprescriptions map[int]struct{}
-	clearedprescriptions bool
-	done                 bool
-	oldValue             func(context.Context) (*ActiveIngredient, error)
-	predicates           []predicate.ActiveIngredient
+	op                      Op
+	typ                     string
+	id                      *int
+	name                    *string
+	stock                   *int
+	addstock                *int
+	unit                    *activeingredient.Unit
+	last_stocked_at         *time.Time
+	last_consumed_at        *time.Time
+	clearedFields           map[string]struct{}
+	medicines               map[int]struct{}
+	removedmedicines        map[int]struct{}
+	clearedmedicines        bool
+	prescriptions           map[int]struct{}
+	removedprescriptions    map[int]struct{}
+	clearedprescriptions    bool
+	stocking_logs           map[int]struct{}
+	removedstocking_logs    map[int]struct{}
+	clearedstocking_logs    bool
+	consumption_logs        map[int]struct{}
+	removedconsumption_logs map[int]struct{}
+	clearedconsumption_logs bool
+	done                    bool
+	oldValue                func(context.Context) (*ActiveIngredient, error)
+	predicates              []predicate.ActiveIngredient
 }
 
 var _ ent.Mutation = (*ActiveIngredientMutation)(nil)
@@ -190,6 +199,197 @@ func (m *ActiveIngredientMutation) ResetName() {
 	m.name = nil
 }
 
+// SetStock sets the "stock" field.
+func (m *ActiveIngredientMutation) SetStock(i int) {
+	m.stock = &i
+	m.addstock = nil
+}
+
+// Stock returns the value of the "stock" field in the mutation.
+func (m *ActiveIngredientMutation) Stock() (r int, exists bool) {
+	v := m.stock
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStock returns the old "stock" field's value of the ActiveIngredient entity.
+// If the ActiveIngredient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveIngredientMutation) OldStock(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStock is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStock requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStock: %w", err)
+	}
+	return oldValue.Stock, nil
+}
+
+// AddStock adds i to the "stock" field.
+func (m *ActiveIngredientMutation) AddStock(i int) {
+	if m.addstock != nil {
+		*m.addstock += i
+	} else {
+		m.addstock = &i
+	}
+}
+
+// AddedStock returns the value that was added to the "stock" field in this mutation.
+func (m *ActiveIngredientMutation) AddedStock() (r int, exists bool) {
+	v := m.addstock
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearStock clears the value of the "stock" field.
+func (m *ActiveIngredientMutation) ClearStock() {
+	m.stock = nil
+	m.addstock = nil
+	m.clearedFields[activeingredient.FieldStock] = struct{}{}
+}
+
+// StockCleared returns if the "stock" field was cleared in this mutation.
+func (m *ActiveIngredientMutation) StockCleared() bool {
+	_, ok := m.clearedFields[activeingredient.FieldStock]
+	return ok
+}
+
+// ResetStock resets all changes to the "stock" field.
+func (m *ActiveIngredientMutation) ResetStock() {
+	m.stock = nil
+	m.addstock = nil
+	delete(m.clearedFields, activeingredient.FieldStock)
+}
+
+// SetUnit sets the "unit" field.
+func (m *ActiveIngredientMutation) SetUnit(a activeingredient.Unit) {
+	m.unit = &a
+}
+
+// Unit returns the value of the "unit" field in the mutation.
+func (m *ActiveIngredientMutation) Unit() (r activeingredient.Unit, exists bool) {
+	v := m.unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnit returns the old "unit" field's value of the ActiveIngredient entity.
+// If the ActiveIngredient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveIngredientMutation) OldUnit(ctx context.Context) (v activeingredient.Unit, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnit: %w", err)
+	}
+	return oldValue.Unit, nil
+}
+
+// ClearUnit clears the value of the "unit" field.
+func (m *ActiveIngredientMutation) ClearUnit() {
+	m.unit = nil
+	m.clearedFields[activeingredient.FieldUnit] = struct{}{}
+}
+
+// UnitCleared returns if the "unit" field was cleared in this mutation.
+func (m *ActiveIngredientMutation) UnitCleared() bool {
+	_, ok := m.clearedFields[activeingredient.FieldUnit]
+	return ok
+}
+
+// ResetUnit resets all changes to the "unit" field.
+func (m *ActiveIngredientMutation) ResetUnit() {
+	m.unit = nil
+	delete(m.clearedFields, activeingredient.FieldUnit)
+}
+
+// SetLastStockedAt sets the "last_stocked_at" field.
+func (m *ActiveIngredientMutation) SetLastStockedAt(t time.Time) {
+	m.last_stocked_at = &t
+}
+
+// LastStockedAt returns the value of the "last_stocked_at" field in the mutation.
+func (m *ActiveIngredientMutation) LastStockedAt() (r time.Time, exists bool) {
+	v := m.last_stocked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastStockedAt returns the old "last_stocked_at" field's value of the ActiveIngredient entity.
+// If the ActiveIngredient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveIngredientMutation) OldLastStockedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastStockedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastStockedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastStockedAt: %w", err)
+	}
+	return oldValue.LastStockedAt, nil
+}
+
+// ResetLastStockedAt resets all changes to the "last_stocked_at" field.
+func (m *ActiveIngredientMutation) ResetLastStockedAt() {
+	m.last_stocked_at = nil
+}
+
+// SetLastConsumedAt sets the "last_consumed_at" field.
+func (m *ActiveIngredientMutation) SetLastConsumedAt(t time.Time) {
+	m.last_consumed_at = &t
+}
+
+// LastConsumedAt returns the value of the "last_consumed_at" field in the mutation.
+func (m *ActiveIngredientMutation) LastConsumedAt() (r time.Time, exists bool) {
+	v := m.last_consumed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastConsumedAt returns the old "last_consumed_at" field's value of the ActiveIngredient entity.
+// If the ActiveIngredient object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ActiveIngredientMutation) OldLastConsumedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastConsumedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastConsumedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastConsumedAt: %w", err)
+	}
+	return oldValue.LastConsumedAt, nil
+}
+
+// ResetLastConsumedAt resets all changes to the "last_consumed_at" field.
+func (m *ActiveIngredientMutation) ResetLastConsumedAt() {
+	m.last_consumed_at = nil
+}
+
 // AddMedicineIDs adds the "medicines" edge to the Medicine entity by ids.
 func (m *ActiveIngredientMutation) AddMedicineIDs(ids ...int) {
 	if m.medicines == nil {
@@ -298,6 +498,114 @@ func (m *ActiveIngredientMutation) ResetPrescriptions() {
 	m.removedprescriptions = nil
 }
 
+// AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by ids.
+func (m *ActiveIngredientMutation) AddStockingLogIDs(ids ...int) {
+	if m.stocking_logs == nil {
+		m.stocking_logs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.stocking_logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStockingLogs clears the "stocking_logs" edge to the StockingLog entity.
+func (m *ActiveIngredientMutation) ClearStockingLogs() {
+	m.clearedstocking_logs = true
+}
+
+// StockingLogsCleared reports if the "stocking_logs" edge to the StockingLog entity was cleared.
+func (m *ActiveIngredientMutation) StockingLogsCleared() bool {
+	return m.clearedstocking_logs
+}
+
+// RemoveStockingLogIDs removes the "stocking_logs" edge to the StockingLog entity by IDs.
+func (m *ActiveIngredientMutation) RemoveStockingLogIDs(ids ...int) {
+	if m.removedstocking_logs == nil {
+		m.removedstocking_logs = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.stocking_logs, ids[i])
+		m.removedstocking_logs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStockingLogs returns the removed IDs of the "stocking_logs" edge to the StockingLog entity.
+func (m *ActiveIngredientMutation) RemovedStockingLogsIDs() (ids []int) {
+	for id := range m.removedstocking_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StockingLogsIDs returns the "stocking_logs" edge IDs in the mutation.
+func (m *ActiveIngredientMutation) StockingLogsIDs() (ids []int) {
+	for id := range m.stocking_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStockingLogs resets all changes to the "stocking_logs" edge.
+func (m *ActiveIngredientMutation) ResetStockingLogs() {
+	m.stocking_logs = nil
+	m.clearedstocking_logs = false
+	m.removedstocking_logs = nil
+}
+
+// AddConsumptionLogIDs adds the "consumption_logs" edge to the ConsumptionLog entity by ids.
+func (m *ActiveIngredientMutation) AddConsumptionLogIDs(ids ...int) {
+	if m.consumption_logs == nil {
+		m.consumption_logs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.consumption_logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearConsumptionLogs clears the "consumption_logs" edge to the ConsumptionLog entity.
+func (m *ActiveIngredientMutation) ClearConsumptionLogs() {
+	m.clearedconsumption_logs = true
+}
+
+// ConsumptionLogsCleared reports if the "consumption_logs" edge to the ConsumptionLog entity was cleared.
+func (m *ActiveIngredientMutation) ConsumptionLogsCleared() bool {
+	return m.clearedconsumption_logs
+}
+
+// RemoveConsumptionLogIDs removes the "consumption_logs" edge to the ConsumptionLog entity by IDs.
+func (m *ActiveIngredientMutation) RemoveConsumptionLogIDs(ids ...int) {
+	if m.removedconsumption_logs == nil {
+		m.removedconsumption_logs = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.consumption_logs, ids[i])
+		m.removedconsumption_logs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedConsumptionLogs returns the removed IDs of the "consumption_logs" edge to the ConsumptionLog entity.
+func (m *ActiveIngredientMutation) RemovedConsumptionLogsIDs() (ids []int) {
+	for id := range m.removedconsumption_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ConsumptionLogsIDs returns the "consumption_logs" edge IDs in the mutation.
+func (m *ActiveIngredientMutation) ConsumptionLogsIDs() (ids []int) {
+	for id := range m.consumption_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetConsumptionLogs resets all changes to the "consumption_logs" edge.
+func (m *ActiveIngredientMutation) ResetConsumptionLogs() {
+	m.consumption_logs = nil
+	m.clearedconsumption_logs = false
+	m.removedconsumption_logs = nil
+}
+
 // Where appends a list predicates to the ActiveIngredientMutation builder.
 func (m *ActiveIngredientMutation) Where(ps ...predicate.ActiveIngredient) {
 	m.predicates = append(m.predicates, ps...)
@@ -332,9 +640,21 @@ func (m *ActiveIngredientMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ActiveIngredientMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, activeingredient.FieldName)
+	}
+	if m.stock != nil {
+		fields = append(fields, activeingredient.FieldStock)
+	}
+	if m.unit != nil {
+		fields = append(fields, activeingredient.FieldUnit)
+	}
+	if m.last_stocked_at != nil {
+		fields = append(fields, activeingredient.FieldLastStockedAt)
+	}
+	if m.last_consumed_at != nil {
+		fields = append(fields, activeingredient.FieldLastConsumedAt)
 	}
 	return fields
 }
@@ -346,6 +666,14 @@ func (m *ActiveIngredientMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case activeingredient.FieldName:
 		return m.Name()
+	case activeingredient.FieldStock:
+		return m.Stock()
+	case activeingredient.FieldUnit:
+		return m.Unit()
+	case activeingredient.FieldLastStockedAt:
+		return m.LastStockedAt()
+	case activeingredient.FieldLastConsumedAt:
+		return m.LastConsumedAt()
 	}
 	return nil, false
 }
@@ -357,6 +685,14 @@ func (m *ActiveIngredientMutation) OldField(ctx context.Context, name string) (e
 	switch name {
 	case activeingredient.FieldName:
 		return m.OldName(ctx)
+	case activeingredient.FieldStock:
+		return m.OldStock(ctx)
+	case activeingredient.FieldUnit:
+		return m.OldUnit(ctx)
+	case activeingredient.FieldLastStockedAt:
+		return m.OldLastStockedAt(ctx)
+	case activeingredient.FieldLastConsumedAt:
+		return m.OldLastConsumedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown ActiveIngredient field %s", name)
 }
@@ -373,6 +709,34 @@ func (m *ActiveIngredientMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetName(v)
 		return nil
+	case activeingredient.FieldStock:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStock(v)
+		return nil
+	case activeingredient.FieldUnit:
+		v, ok := value.(activeingredient.Unit)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnit(v)
+		return nil
+	case activeingredient.FieldLastStockedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastStockedAt(v)
+		return nil
+	case activeingredient.FieldLastConsumedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastConsumedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ActiveIngredient field %s", name)
 }
@@ -380,13 +744,21 @@ func (m *ActiveIngredientMutation) SetField(name string, value ent.Value) error 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ActiveIngredientMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addstock != nil {
+		fields = append(fields, activeingredient.FieldStock)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ActiveIngredientMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case activeingredient.FieldStock:
+		return m.AddedStock()
+	}
 	return nil, false
 }
 
@@ -395,6 +767,13 @@ func (m *ActiveIngredientMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ActiveIngredientMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case activeingredient.FieldStock:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStock(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ActiveIngredient numeric field %s", name)
 }
@@ -402,7 +781,14 @@ func (m *ActiveIngredientMutation) AddField(name string, value ent.Value) error 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ActiveIngredientMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(activeingredient.FieldStock) {
+		fields = append(fields, activeingredient.FieldStock)
+	}
+	if m.FieldCleared(activeingredient.FieldUnit) {
+		fields = append(fields, activeingredient.FieldUnit)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -415,6 +801,14 @@ func (m *ActiveIngredientMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ActiveIngredientMutation) ClearField(name string) error {
+	switch name {
+	case activeingredient.FieldStock:
+		m.ClearStock()
+		return nil
+	case activeingredient.FieldUnit:
+		m.ClearUnit()
+		return nil
+	}
 	return fmt.Errorf("unknown ActiveIngredient nullable field %s", name)
 }
 
@@ -425,18 +819,36 @@ func (m *ActiveIngredientMutation) ResetField(name string) error {
 	case activeingredient.FieldName:
 		m.ResetName()
 		return nil
+	case activeingredient.FieldStock:
+		m.ResetStock()
+		return nil
+	case activeingredient.FieldUnit:
+		m.ResetUnit()
+		return nil
+	case activeingredient.FieldLastStockedAt:
+		m.ResetLastStockedAt()
+		return nil
+	case activeingredient.FieldLastConsumedAt:
+		m.ResetLastConsumedAt()
+		return nil
 	}
 	return fmt.Errorf("unknown ActiveIngredient field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ActiveIngredientMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.medicines != nil {
 		edges = append(edges, activeingredient.EdgeMedicines)
 	}
 	if m.prescriptions != nil {
 		edges = append(edges, activeingredient.EdgePrescriptions)
+	}
+	if m.stocking_logs != nil {
+		edges = append(edges, activeingredient.EdgeStockingLogs)
+	}
+	if m.consumption_logs != nil {
+		edges = append(edges, activeingredient.EdgeConsumptionLogs)
 	}
 	return edges
 }
@@ -457,18 +869,36 @@ func (m *ActiveIngredientMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case activeingredient.EdgeStockingLogs:
+		ids := make([]ent.Value, 0, len(m.stocking_logs))
+		for id := range m.stocking_logs {
+			ids = append(ids, id)
+		}
+		return ids
+	case activeingredient.EdgeConsumptionLogs:
+		ids := make([]ent.Value, 0, len(m.consumption_logs))
+		for id := range m.consumption_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ActiveIngredientMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.removedmedicines != nil {
 		edges = append(edges, activeingredient.EdgeMedicines)
 	}
 	if m.removedprescriptions != nil {
 		edges = append(edges, activeingredient.EdgePrescriptions)
+	}
+	if m.removedstocking_logs != nil {
+		edges = append(edges, activeingredient.EdgeStockingLogs)
+	}
+	if m.removedconsumption_logs != nil {
+		edges = append(edges, activeingredient.EdgeConsumptionLogs)
 	}
 	return edges
 }
@@ -489,18 +919,36 @@ func (m *ActiveIngredientMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case activeingredient.EdgeStockingLogs:
+		ids := make([]ent.Value, 0, len(m.removedstocking_logs))
+		for id := range m.removedstocking_logs {
+			ids = append(ids, id)
+		}
+		return ids
+	case activeingredient.EdgeConsumptionLogs:
+		ids := make([]ent.Value, 0, len(m.removedconsumption_logs))
+		for id := range m.removedconsumption_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ActiveIngredientMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedmedicines {
 		edges = append(edges, activeingredient.EdgeMedicines)
 	}
 	if m.clearedprescriptions {
 		edges = append(edges, activeingredient.EdgePrescriptions)
+	}
+	if m.clearedstocking_logs {
+		edges = append(edges, activeingredient.EdgeStockingLogs)
+	}
+	if m.clearedconsumption_logs {
+		edges = append(edges, activeingredient.EdgeConsumptionLogs)
 	}
 	return edges
 }
@@ -513,6 +961,10 @@ func (m *ActiveIngredientMutation) EdgeCleared(name string) bool {
 		return m.clearedmedicines
 	case activeingredient.EdgePrescriptions:
 		return m.clearedprescriptions
+	case activeingredient.EdgeStockingLogs:
+		return m.clearedstocking_logs
+	case activeingredient.EdgeConsumptionLogs:
+		return m.clearedconsumption_logs
 	}
 	return false
 }
@@ -535,6 +987,12 @@ func (m *ActiveIngredientMutation) ResetEdge(name string) error {
 	case activeingredient.EdgePrescriptions:
 		m.ResetPrescriptions()
 		return nil
+	case activeingredient.EdgeStockingLogs:
+		m.ResetStockingLogs()
+		return nil
+	case activeingredient.EdgeConsumptionLogs:
+		m.ResetConsumptionLogs()
+		return nil
 	}
 	return fmt.Errorf("unknown ActiveIngredient edge %s", name)
 }
@@ -546,6 +1004,8 @@ type ConsumptionLogMutation struct {
 	typ                 string
 	id                  *int
 	consumed_at         *time.Time
+	units               *int
+	addunits            *int
 	clearedFields       map[string]struct{}
 	prescription        *int
 	clearedprescription bool
@@ -683,9 +1143,78 @@ func (m *ConsumptionLogMutation) OldConsumedAt(ctx context.Context) (v time.Time
 	return oldValue.ConsumedAt, nil
 }
 
+// ClearConsumedAt clears the value of the "consumed_at" field.
+func (m *ConsumptionLogMutation) ClearConsumedAt() {
+	m.consumed_at = nil
+	m.clearedFields[consumptionlog.FieldConsumedAt] = struct{}{}
+}
+
+// ConsumedAtCleared returns if the "consumed_at" field was cleared in this mutation.
+func (m *ConsumptionLogMutation) ConsumedAtCleared() bool {
+	_, ok := m.clearedFields[consumptionlog.FieldConsumedAt]
+	return ok
+}
+
 // ResetConsumedAt resets all changes to the "consumed_at" field.
 func (m *ConsumptionLogMutation) ResetConsumedAt() {
 	m.consumed_at = nil
+	delete(m.clearedFields, consumptionlog.FieldConsumedAt)
+}
+
+// SetUnits sets the "units" field.
+func (m *ConsumptionLogMutation) SetUnits(i int) {
+	m.units = &i
+	m.addunits = nil
+}
+
+// Units returns the value of the "units" field in the mutation.
+func (m *ConsumptionLogMutation) Units() (r int, exists bool) {
+	v := m.units
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnits returns the old "units" field's value of the ConsumptionLog entity.
+// If the ConsumptionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConsumptionLogMutation) OldUnits(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnits is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnits requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnits: %w", err)
+	}
+	return oldValue.Units, nil
+}
+
+// AddUnits adds i to the "units" field.
+func (m *ConsumptionLogMutation) AddUnits(i int) {
+	if m.addunits != nil {
+		*m.addunits += i
+	} else {
+		m.addunits = &i
+	}
+}
+
+// AddedUnits returns the value that was added to the "units" field in this mutation.
+func (m *ConsumptionLogMutation) AddedUnits() (r int, exists bool) {
+	v := m.addunits
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUnits resets all changes to the "units" field.
+func (m *ConsumptionLogMutation) ResetUnits() {
+	m.units = nil
+	m.addunits = nil
 }
 
 // SetPrescriptionID sets the "prescription" edge to the Prescription entity by id.
@@ -761,9 +1290,12 @@ func (m *ConsumptionLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ConsumptionLogMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.consumed_at != nil {
 		fields = append(fields, consumptionlog.FieldConsumedAt)
+	}
+	if m.units != nil {
+		fields = append(fields, consumptionlog.FieldUnits)
 	}
 	return fields
 }
@@ -775,6 +1307,8 @@ func (m *ConsumptionLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case consumptionlog.FieldConsumedAt:
 		return m.ConsumedAt()
+	case consumptionlog.FieldUnits:
+		return m.Units()
 	}
 	return nil, false
 }
@@ -786,6 +1320,8 @@ func (m *ConsumptionLogMutation) OldField(ctx context.Context, name string) (ent
 	switch name {
 	case consumptionlog.FieldConsumedAt:
 		return m.OldConsumedAt(ctx)
+	case consumptionlog.FieldUnits:
+		return m.OldUnits(ctx)
 	}
 	return nil, fmt.Errorf("unknown ConsumptionLog field %s", name)
 }
@@ -802,6 +1338,13 @@ func (m *ConsumptionLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetConsumedAt(v)
 		return nil
+	case consumptionlog.FieldUnits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnits(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ConsumptionLog field %s", name)
 }
@@ -809,13 +1352,21 @@ func (m *ConsumptionLogMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ConsumptionLogMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addunits != nil {
+		fields = append(fields, consumptionlog.FieldUnits)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ConsumptionLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case consumptionlog.FieldUnits:
+		return m.AddedUnits()
+	}
 	return nil, false
 }
 
@@ -824,6 +1375,13 @@ func (m *ConsumptionLogMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ConsumptionLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case consumptionlog.FieldUnits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUnits(v)
+		return nil
 	}
 	return fmt.Errorf("unknown ConsumptionLog numeric field %s", name)
 }
@@ -831,7 +1389,11 @@ func (m *ConsumptionLogMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ConsumptionLogMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(consumptionlog.FieldConsumedAt) {
+		fields = append(fields, consumptionlog.FieldConsumedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -844,6 +1406,11 @@ func (m *ConsumptionLogMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ConsumptionLogMutation) ClearField(name string) error {
+	switch name {
+	case consumptionlog.FieldConsumedAt:
+		m.ClearConsumedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown ConsumptionLog nullable field %s", name)
 }
 
@@ -853,6 +1420,9 @@ func (m *ConsumptionLogMutation) ResetField(name string) error {
 	switch name {
 	case consumptionlog.FieldConsumedAt:
 		m.ResetConsumedAt()
+		return nil
+	case consumptionlog.FieldUnits:
+		m.ResetUnits()
 		return nil
 	}
 	return fmt.Errorf("unknown ConsumptionLog field %s", name)
@@ -942,19 +1512,12 @@ type MedicineMutation struct {
 	mah                      *string
 	dosage                   *float64
 	adddosage                *float64
-	unit                     *string
 	atc                      *string
 	_package                 *string
 	form                     *string
 	box_size                 *int
 	addbox_size              *int
-	stock                    *float32
-	addstock                 *float32
-	last_stock_update        *time.Time
 	clearedFields            map[string]struct{}
-	purchases                map[int]struct{}
-	removedpurchases         map[int]struct{}
-	clearedpurchases         bool
 	stocking_logs            map[int]struct{}
 	removedstocking_logs     map[int]struct{}
 	clearedstocking_logs     bool
@@ -1191,42 +1754,6 @@ func (m *MedicineMutation) ResetDosage() {
 	m.adddosage = nil
 }
 
-// SetUnit sets the "unit" field.
-func (m *MedicineMutation) SetUnit(s string) {
-	m.unit = &s
-}
-
-// Unit returns the value of the "unit" field in the mutation.
-func (m *MedicineMutation) Unit() (r string, exists bool) {
-	v := m.unit
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUnit returns the old "unit" field's value of the Medicine entity.
-// If the Medicine object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MedicineMutation) OldUnit(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUnit is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUnit requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUnit: %w", err)
-	}
-	return oldValue.Unit, nil
-}
-
-// ResetUnit resets all changes to the "unit" field.
-func (m *MedicineMutation) ResetUnit() {
-	m.unit = nil
-}
-
 // SetAtc sets the "atc" field.
 func (m *MedicineMutation) SetAtc(s string) {
 	m.atc = &s
@@ -1391,166 +1918,6 @@ func (m *MedicineMutation) ResetBoxSize() {
 	m.addbox_size = nil
 }
 
-// SetStock sets the "stock" field.
-func (m *MedicineMutation) SetStock(f float32) {
-	m.stock = &f
-	m.addstock = nil
-}
-
-// Stock returns the value of the "stock" field in the mutation.
-func (m *MedicineMutation) Stock() (r float32, exists bool) {
-	v := m.stock
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStock returns the old "stock" field's value of the Medicine entity.
-// If the Medicine object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MedicineMutation) OldStock(ctx context.Context) (v float32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStock is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStock requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStock: %w", err)
-	}
-	return oldValue.Stock, nil
-}
-
-// AddStock adds f to the "stock" field.
-func (m *MedicineMutation) AddStock(f float32) {
-	if m.addstock != nil {
-		*m.addstock += f
-	} else {
-		m.addstock = &f
-	}
-}
-
-// AddedStock returns the value that was added to the "stock" field in this mutation.
-func (m *MedicineMutation) AddedStock() (r float32, exists bool) {
-	v := m.addstock
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearStock clears the value of the "stock" field.
-func (m *MedicineMutation) ClearStock() {
-	m.stock = nil
-	m.addstock = nil
-	m.clearedFields[medicine.FieldStock] = struct{}{}
-}
-
-// StockCleared returns if the "stock" field was cleared in this mutation.
-func (m *MedicineMutation) StockCleared() bool {
-	_, ok := m.clearedFields[medicine.FieldStock]
-	return ok
-}
-
-// ResetStock resets all changes to the "stock" field.
-func (m *MedicineMutation) ResetStock() {
-	m.stock = nil
-	m.addstock = nil
-	delete(m.clearedFields, medicine.FieldStock)
-}
-
-// SetLastStockUpdate sets the "last_stock_update" field.
-func (m *MedicineMutation) SetLastStockUpdate(t time.Time) {
-	m.last_stock_update = &t
-}
-
-// LastStockUpdate returns the value of the "last_stock_update" field in the mutation.
-func (m *MedicineMutation) LastStockUpdate() (r time.Time, exists bool) {
-	v := m.last_stock_update
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastStockUpdate returns the old "last_stock_update" field's value of the Medicine entity.
-// If the Medicine object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MedicineMutation) OldLastStockUpdate(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastStockUpdate is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastStockUpdate requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastStockUpdate: %w", err)
-	}
-	return oldValue.LastStockUpdate, nil
-}
-
-// ResetLastStockUpdate resets all changes to the "last_stock_update" field.
-func (m *MedicineMutation) ResetLastStockUpdate() {
-	m.last_stock_update = nil
-}
-
-// AddPurchaseIDs adds the "purchases" edge to the Purchase entity by ids.
-func (m *MedicineMutation) AddPurchaseIDs(ids ...int) {
-	if m.purchases == nil {
-		m.purchases = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.purchases[ids[i]] = struct{}{}
-	}
-}
-
-// ClearPurchases clears the "purchases" edge to the Purchase entity.
-func (m *MedicineMutation) ClearPurchases() {
-	m.clearedpurchases = true
-}
-
-// PurchasesCleared reports if the "purchases" edge to the Purchase entity was cleared.
-func (m *MedicineMutation) PurchasesCleared() bool {
-	return m.clearedpurchases
-}
-
-// RemovePurchaseIDs removes the "purchases" edge to the Purchase entity by IDs.
-func (m *MedicineMutation) RemovePurchaseIDs(ids ...int) {
-	if m.removedpurchases == nil {
-		m.removedpurchases = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.purchases, ids[i])
-		m.removedpurchases[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedPurchases returns the removed IDs of the "purchases" edge to the Purchase entity.
-func (m *MedicineMutation) RemovedPurchasesIDs() (ids []int) {
-	for id := range m.removedpurchases {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// PurchasesIDs returns the "purchases" edge IDs in the mutation.
-func (m *MedicineMutation) PurchasesIDs() (ids []int) {
-	for id := range m.purchases {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetPurchases resets all changes to the "purchases" edge.
-func (m *MedicineMutation) ResetPurchases() {
-	m.purchases = nil
-	m.clearedpurchases = false
-	m.removedpurchases = nil
-}
-
 // AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by ids.
 func (m *MedicineMutation) AddStockingLogIDs(ids ...int) {
 	if m.stocking_logs == nil {
@@ -1678,7 +2045,7 @@ func (m *MedicineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MedicineMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, medicine.FieldName)
 	}
@@ -1687,9 +2054,6 @@ func (m *MedicineMutation) Fields() []string {
 	}
 	if m.dosage != nil {
 		fields = append(fields, medicine.FieldDosage)
-	}
-	if m.unit != nil {
-		fields = append(fields, medicine.FieldUnit)
 	}
 	if m.atc != nil {
 		fields = append(fields, medicine.FieldAtc)
@@ -1702,12 +2066,6 @@ func (m *MedicineMutation) Fields() []string {
 	}
 	if m.box_size != nil {
 		fields = append(fields, medicine.FieldBoxSize)
-	}
-	if m.stock != nil {
-		fields = append(fields, medicine.FieldStock)
-	}
-	if m.last_stock_update != nil {
-		fields = append(fields, medicine.FieldLastStockUpdate)
 	}
 	return fields
 }
@@ -1723,8 +2081,6 @@ func (m *MedicineMutation) Field(name string) (ent.Value, bool) {
 		return m.Mah()
 	case medicine.FieldDosage:
 		return m.Dosage()
-	case medicine.FieldUnit:
-		return m.Unit()
 	case medicine.FieldAtc:
 		return m.Atc()
 	case medicine.FieldPackage:
@@ -1733,10 +2089,6 @@ func (m *MedicineMutation) Field(name string) (ent.Value, bool) {
 		return m.Form()
 	case medicine.FieldBoxSize:
 		return m.BoxSize()
-	case medicine.FieldStock:
-		return m.Stock()
-	case medicine.FieldLastStockUpdate:
-		return m.LastStockUpdate()
 	}
 	return nil, false
 }
@@ -1752,8 +2104,6 @@ func (m *MedicineMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldMah(ctx)
 	case medicine.FieldDosage:
 		return m.OldDosage(ctx)
-	case medicine.FieldUnit:
-		return m.OldUnit(ctx)
 	case medicine.FieldAtc:
 		return m.OldAtc(ctx)
 	case medicine.FieldPackage:
@@ -1762,10 +2112,6 @@ func (m *MedicineMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldForm(ctx)
 	case medicine.FieldBoxSize:
 		return m.OldBoxSize(ctx)
-	case medicine.FieldStock:
-		return m.OldStock(ctx)
-	case medicine.FieldLastStockUpdate:
-		return m.OldLastStockUpdate(ctx)
 	}
 	return nil, fmt.Errorf("unknown Medicine field %s", name)
 }
@@ -1796,13 +2142,6 @@ func (m *MedicineMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDosage(v)
 		return nil
-	case medicine.FieldUnit:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUnit(v)
-		return nil
 	case medicine.FieldAtc:
 		v, ok := value.(string)
 		if !ok {
@@ -1831,20 +2170,6 @@ func (m *MedicineMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBoxSize(v)
 		return nil
-	case medicine.FieldStock:
-		v, ok := value.(float32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStock(v)
-		return nil
-	case medicine.FieldLastStockUpdate:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastStockUpdate(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Medicine field %s", name)
 }
@@ -1859,9 +2184,6 @@ func (m *MedicineMutation) AddedFields() []string {
 	if m.addbox_size != nil {
 		fields = append(fields, medicine.FieldBoxSize)
 	}
-	if m.addstock != nil {
-		fields = append(fields, medicine.FieldStock)
-	}
 	return fields
 }
 
@@ -1874,8 +2196,6 @@ func (m *MedicineMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDosage()
 	case medicine.FieldBoxSize:
 		return m.AddedBoxSize()
-	case medicine.FieldStock:
-		return m.AddedStock()
 	}
 	return nil, false
 }
@@ -1899,13 +2219,6 @@ func (m *MedicineMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddBoxSize(v)
 		return nil
-	case medicine.FieldStock:
-		v, ok := value.(float32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStock(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Medicine numeric field %s", name)
 }
@@ -1913,11 +2226,7 @@ func (m *MedicineMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MedicineMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(medicine.FieldStock) {
-		fields = append(fields, medicine.FieldStock)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1930,11 +2239,6 @@ func (m *MedicineMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MedicineMutation) ClearField(name string) error {
-	switch name {
-	case medicine.FieldStock:
-		m.ClearStock()
-		return nil
-	}
 	return fmt.Errorf("unknown Medicine nullable field %s", name)
 }
 
@@ -1951,9 +2255,6 @@ func (m *MedicineMutation) ResetField(name string) error {
 	case medicine.FieldDosage:
 		m.ResetDosage()
 		return nil
-	case medicine.FieldUnit:
-		m.ResetUnit()
-		return nil
 	case medicine.FieldAtc:
 		m.ResetAtc()
 		return nil
@@ -1966,22 +2267,13 @@ func (m *MedicineMutation) ResetField(name string) error {
 	case medicine.FieldBoxSize:
 		m.ResetBoxSize()
 		return nil
-	case medicine.FieldStock:
-		m.ResetStock()
-		return nil
-	case medicine.FieldLastStockUpdate:
-		m.ResetLastStockUpdate()
-		return nil
 	}
 	return fmt.Errorf("unknown Medicine field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MedicineMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.purchases != nil {
-		edges = append(edges, medicine.EdgePurchases)
-	}
+	edges := make([]string, 0, 2)
 	if m.stocking_logs != nil {
 		edges = append(edges, medicine.EdgeStockingLogs)
 	}
@@ -1995,12 +2287,6 @@ func (m *MedicineMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *MedicineMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case medicine.EdgePurchases:
-		ids := make([]ent.Value, 0, len(m.purchases))
-		for id := range m.purchases {
-			ids = append(ids, id)
-		}
-		return ids
 	case medicine.EdgeStockingLogs:
 		ids := make([]ent.Value, 0, len(m.stocking_logs))
 		for id := range m.stocking_logs {
@@ -2017,10 +2303,7 @@ func (m *MedicineMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MedicineMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.removedpurchases != nil {
-		edges = append(edges, medicine.EdgePurchases)
-	}
+	edges := make([]string, 0, 2)
 	if m.removedstocking_logs != nil {
 		edges = append(edges, medicine.EdgeStockingLogs)
 	}
@@ -2031,12 +2314,6 @@ func (m *MedicineMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *MedicineMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case medicine.EdgePurchases:
-		ids := make([]ent.Value, 0, len(m.removedpurchases))
-		for id := range m.removedpurchases {
-			ids = append(ids, id)
-		}
-		return ids
 	case medicine.EdgeStockingLogs:
 		ids := make([]ent.Value, 0, len(m.removedstocking_logs))
 		for id := range m.removedstocking_logs {
@@ -2049,10 +2326,7 @@ func (m *MedicineMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MedicineMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
-	if m.clearedpurchases {
-		edges = append(edges, medicine.EdgePurchases)
-	}
+	edges := make([]string, 0, 2)
 	if m.clearedstocking_logs {
 		edges = append(edges, medicine.EdgeStockingLogs)
 	}
@@ -2066,8 +2340,6 @@ func (m *MedicineMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *MedicineMutation) EdgeCleared(name string) bool {
 	switch name {
-	case medicine.EdgePurchases:
-		return m.clearedpurchases
 	case medicine.EdgeStockingLogs:
 		return m.clearedstocking_logs
 	case medicine.EdgeActiveIngredient:
@@ -2091,9 +2363,6 @@ func (m *MedicineMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MedicineMutation) ResetEdge(name string) error {
 	switch name {
-	case medicine.EdgePurchases:
-		m.ResetPurchases()
-		return nil
 	case medicine.EdgeStockingLogs:
 		m.ResetStockingLogs()
 		return nil
@@ -2112,7 +2381,6 @@ type PrescriptionMutation struct {
 	id                       *int
 	dosage                   *int
 	adddosage                *int
-	unit                     *string
 	dosage_frequency         *int
 	adddosage_frequency      *int
 	start_date               *time.Time
@@ -2280,42 +2548,6 @@ func (m *PrescriptionMutation) AddedDosage() (r int, exists bool) {
 func (m *PrescriptionMutation) ResetDosage() {
 	m.dosage = nil
 	m.adddosage = nil
-}
-
-// SetUnit sets the "unit" field.
-func (m *PrescriptionMutation) SetUnit(s string) {
-	m.unit = &s
-}
-
-// Unit returns the value of the "unit" field in the mutation.
-func (m *PrescriptionMutation) Unit() (r string, exists bool) {
-	v := m.unit
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUnit returns the old "unit" field's value of the Prescription entity.
-// If the Prescription object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PrescriptionMutation) OldUnit(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUnit is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUnit requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUnit: %w", err)
-	}
-	return oldValue.Unit, nil
-}
-
-// ResetUnit resets all changes to the "unit" field.
-func (m *PrescriptionMutation) ResetUnit() {
-	m.unit = nil
 }
 
 // SetDosageFrequency sets the "dosage_frequency" field.
@@ -2613,12 +2845,9 @@ func (m *PrescriptionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PrescriptionMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.dosage != nil {
 		fields = append(fields, prescription.FieldDosage)
-	}
-	if m.unit != nil {
-		fields = append(fields, prescription.FieldUnit)
 	}
 	if m.dosage_frequency != nil {
 		fields = append(fields, prescription.FieldDosageFrequency)
@@ -2639,8 +2868,6 @@ func (m *PrescriptionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case prescription.FieldDosage:
 		return m.Dosage()
-	case prescription.FieldUnit:
-		return m.Unit()
 	case prescription.FieldDosageFrequency:
 		return m.DosageFrequency()
 	case prescription.FieldStartDate:
@@ -2658,8 +2885,6 @@ func (m *PrescriptionMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case prescription.FieldDosage:
 		return m.OldDosage(ctx)
-	case prescription.FieldUnit:
-		return m.OldUnit(ctx)
 	case prescription.FieldDosageFrequency:
 		return m.OldDosageFrequency(ctx)
 	case prescription.FieldStartDate:
@@ -2681,13 +2906,6 @@ func (m *PrescriptionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDosage(v)
-		return nil
-	case prescription.FieldUnit:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUnit(v)
 		return nil
 	case prescription.FieldDosageFrequency:
 		v, ok := value.(int)
@@ -2810,9 +3028,6 @@ func (m *PrescriptionMutation) ResetField(name string) error {
 	case prescription.FieldDosage:
 		m.ResetDosage()
 		return nil
-	case prescription.FieldUnit:
-		m.ResetUnit()
-		return nil
 	case prescription.FieldDosageFrequency:
 		m.ResetDosageFrequency()
 		return nil
@@ -2928,437 +3143,25 @@ func (m *PrescriptionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Prescription edge %s", name)
 }
 
-// PurchaseMutation represents an operation that mutates the Purchase nodes in the graph.
-type PurchaseMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	puchased_at   *time.Time
-	quantity      *int
-	addquantity   *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Purchase, error)
-	predicates    []predicate.Purchase
-}
-
-var _ ent.Mutation = (*PurchaseMutation)(nil)
-
-// purchaseOption allows management of the mutation configuration using functional options.
-type purchaseOption func(*PurchaseMutation)
-
-// newPurchaseMutation creates new mutation for the Purchase entity.
-func newPurchaseMutation(c config, op Op, opts ...purchaseOption) *PurchaseMutation {
-	m := &PurchaseMutation{
-		config:        c,
-		op:            op,
-		typ:           TypePurchase,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withPurchaseID sets the ID field of the mutation.
-func withPurchaseID(id int) purchaseOption {
-	return func(m *PurchaseMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Purchase
-		)
-		m.oldValue = func(ctx context.Context) (*Purchase, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Purchase.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withPurchase sets the old Purchase of the mutation.
-func withPurchase(node *Purchase) purchaseOption {
-	return func(m *PurchaseMutation) {
-		m.oldValue = func(context.Context) (*Purchase, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PurchaseMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m PurchaseMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *PurchaseMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *PurchaseMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Purchase.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetPuchasedAt sets the "puchased_at" field.
-func (m *PurchaseMutation) SetPuchasedAt(t time.Time) {
-	m.puchased_at = &t
-}
-
-// PuchasedAt returns the value of the "puchased_at" field in the mutation.
-func (m *PurchaseMutation) PuchasedAt() (r time.Time, exists bool) {
-	v := m.puchased_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPuchasedAt returns the old "puchased_at" field's value of the Purchase entity.
-// If the Purchase object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PurchaseMutation) OldPuchasedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPuchasedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPuchasedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPuchasedAt: %w", err)
-	}
-	return oldValue.PuchasedAt, nil
-}
-
-// ResetPuchasedAt resets all changes to the "puchased_at" field.
-func (m *PurchaseMutation) ResetPuchasedAt() {
-	m.puchased_at = nil
-}
-
-// SetQuantity sets the "quantity" field.
-func (m *PurchaseMutation) SetQuantity(i int) {
-	m.quantity = &i
-	m.addquantity = nil
-}
-
-// Quantity returns the value of the "quantity" field in the mutation.
-func (m *PurchaseMutation) Quantity() (r int, exists bool) {
-	v := m.quantity
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldQuantity returns the old "quantity" field's value of the Purchase entity.
-// If the Purchase object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PurchaseMutation) OldQuantity(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldQuantity requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
-	}
-	return oldValue.Quantity, nil
-}
-
-// AddQuantity adds i to the "quantity" field.
-func (m *PurchaseMutation) AddQuantity(i int) {
-	if m.addquantity != nil {
-		*m.addquantity += i
-	} else {
-		m.addquantity = &i
-	}
-}
-
-// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
-func (m *PurchaseMutation) AddedQuantity() (r int, exists bool) {
-	v := m.addquantity
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetQuantity resets all changes to the "quantity" field.
-func (m *PurchaseMutation) ResetQuantity() {
-	m.quantity = nil
-	m.addquantity = nil
-}
-
-// Where appends a list predicates to the PurchaseMutation builder.
-func (m *PurchaseMutation) Where(ps ...predicate.Purchase) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the PurchaseMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *PurchaseMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Purchase, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *PurchaseMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *PurchaseMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Purchase).
-func (m *PurchaseMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *PurchaseMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.puchased_at != nil {
-		fields = append(fields, purchase.FieldPuchasedAt)
-	}
-	if m.quantity != nil {
-		fields = append(fields, purchase.FieldQuantity)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *PurchaseMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case purchase.FieldPuchasedAt:
-		return m.PuchasedAt()
-	case purchase.FieldQuantity:
-		return m.Quantity()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *PurchaseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case purchase.FieldPuchasedAt:
-		return m.OldPuchasedAt(ctx)
-	case purchase.FieldQuantity:
-		return m.OldQuantity(ctx)
-	}
-	return nil, fmt.Errorf("unknown Purchase field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PurchaseMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case purchase.FieldPuchasedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPuchasedAt(v)
-		return nil
-	case purchase.FieldQuantity:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetQuantity(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Purchase field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *PurchaseMutation) AddedFields() []string {
-	var fields []string
-	if m.addquantity != nil {
-		fields = append(fields, purchase.FieldQuantity)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *PurchaseMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case purchase.FieldQuantity:
-		return m.AddedQuantity()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PurchaseMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case purchase.FieldQuantity:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddQuantity(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Purchase numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *PurchaseMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *PurchaseMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *PurchaseMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Purchase nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *PurchaseMutation) ResetField(name string) error {
-	switch name {
-	case purchase.FieldPuchasedAt:
-		m.ResetPuchasedAt()
-		return nil
-	case purchase.FieldQuantity:
-		m.ResetQuantity()
-		return nil
-	}
-	return fmt.Errorf("unknown Purchase field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PurchaseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *PurchaseMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PurchaseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *PurchaseMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PurchaseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *PurchaseMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *PurchaseMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Purchase unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *PurchaseMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown Purchase edge %s", name)
-}
-
 // StockingLogMutation represents an operation that mutates the StockingLog nodes in the graph.
 type StockingLogMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	stocked_at      *time.Time
-	quantity        *int
-	addquantity     *int
-	clearedFields   map[string]struct{}
-	medicine        *int
-	clearedmedicine bool
-	done            bool
-	oldValue        func(context.Context) (*StockingLog, error)
-	predicates      []predicate.StockingLog
+	op                       Op
+	typ                      string
+	id                       *int
+	stocked_at               *time.Time
+	boxes                    *int
+	addboxes                 *int
+	units                    *int
+	addunits                 *int
+	clearedFields            map[string]struct{}
+	medicine                 *int
+	clearedmedicine          bool
+	active_ingredient        *int
+	clearedactive_ingredient bool
+	done                     bool
+	oldValue                 func(context.Context) (*StockingLog, error)
+	predicates               []predicate.StockingLog
 }
 
 var _ ent.Mutation = (*StockingLogMutation)(nil)
@@ -3490,65 +3293,148 @@ func (m *StockingLogMutation) OldStockedAt(ctx context.Context) (v time.Time, er
 	return oldValue.StockedAt, nil
 }
 
+// ClearStockedAt clears the value of the "stocked_at" field.
+func (m *StockingLogMutation) ClearStockedAt() {
+	m.stocked_at = nil
+	m.clearedFields[stockinglog.FieldStockedAt] = struct{}{}
+}
+
+// StockedAtCleared returns if the "stocked_at" field was cleared in this mutation.
+func (m *StockingLogMutation) StockedAtCleared() bool {
+	_, ok := m.clearedFields[stockinglog.FieldStockedAt]
+	return ok
+}
+
 // ResetStockedAt resets all changes to the "stocked_at" field.
 func (m *StockingLogMutation) ResetStockedAt() {
 	m.stocked_at = nil
+	delete(m.clearedFields, stockinglog.FieldStockedAt)
 }
 
-// SetQuantity sets the "quantity" field.
-func (m *StockingLogMutation) SetQuantity(i int) {
-	m.quantity = &i
-	m.addquantity = nil
+// SetBoxes sets the "boxes" field.
+func (m *StockingLogMutation) SetBoxes(i int) {
+	m.boxes = &i
+	m.addboxes = nil
 }
 
-// Quantity returns the value of the "quantity" field in the mutation.
-func (m *StockingLogMutation) Quantity() (r int, exists bool) {
-	v := m.quantity
+// Boxes returns the value of the "boxes" field in the mutation.
+func (m *StockingLogMutation) Boxes() (r int, exists bool) {
+	v := m.boxes
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldQuantity returns the old "quantity" field's value of the StockingLog entity.
+// OldBoxes returns the old "boxes" field's value of the StockingLog entity.
 // If the StockingLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StockingLogMutation) OldQuantity(ctx context.Context) (v int, err error) {
+func (m *StockingLogMutation) OldBoxes(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+		return v, errors.New("OldBoxes is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldQuantity requires an ID field in the mutation")
+		return v, errors.New("OldBoxes requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+		return v, fmt.Errorf("querying old value for OldBoxes: %w", err)
 	}
-	return oldValue.Quantity, nil
+	return oldValue.Boxes, nil
 }
 
-// AddQuantity adds i to the "quantity" field.
-func (m *StockingLogMutation) AddQuantity(i int) {
-	if m.addquantity != nil {
-		*m.addquantity += i
+// AddBoxes adds i to the "boxes" field.
+func (m *StockingLogMutation) AddBoxes(i int) {
+	if m.addboxes != nil {
+		*m.addboxes += i
 	} else {
-		m.addquantity = &i
+		m.addboxes = &i
 	}
 }
 
-// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
-func (m *StockingLogMutation) AddedQuantity() (r int, exists bool) {
-	v := m.addquantity
+// AddedBoxes returns the value that was added to the "boxes" field in this mutation.
+func (m *StockingLogMutation) AddedBoxes() (r int, exists bool) {
+	v := m.addboxes
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetQuantity resets all changes to the "quantity" field.
-func (m *StockingLogMutation) ResetQuantity() {
-	m.quantity = nil
-	m.addquantity = nil
+// ClearBoxes clears the value of the "boxes" field.
+func (m *StockingLogMutation) ClearBoxes() {
+	m.boxes = nil
+	m.addboxes = nil
+	m.clearedFields[stockinglog.FieldBoxes] = struct{}{}
+}
+
+// BoxesCleared returns if the "boxes" field was cleared in this mutation.
+func (m *StockingLogMutation) BoxesCleared() bool {
+	_, ok := m.clearedFields[stockinglog.FieldBoxes]
+	return ok
+}
+
+// ResetBoxes resets all changes to the "boxes" field.
+func (m *StockingLogMutation) ResetBoxes() {
+	m.boxes = nil
+	m.addboxes = nil
+	delete(m.clearedFields, stockinglog.FieldBoxes)
+}
+
+// SetUnits sets the "units" field.
+func (m *StockingLogMutation) SetUnits(i int) {
+	m.units = &i
+	m.addunits = nil
+}
+
+// Units returns the value of the "units" field in the mutation.
+func (m *StockingLogMutation) Units() (r int, exists bool) {
+	v := m.units
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnits returns the old "units" field's value of the StockingLog entity.
+// If the StockingLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StockingLogMutation) OldUnits(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnits is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnits requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnits: %w", err)
+	}
+	return oldValue.Units, nil
+}
+
+// AddUnits adds i to the "units" field.
+func (m *StockingLogMutation) AddUnits(i int) {
+	if m.addunits != nil {
+		*m.addunits += i
+	} else {
+		m.addunits = &i
+	}
+}
+
+// AddedUnits returns the value that was added to the "units" field in this mutation.
+func (m *StockingLogMutation) AddedUnits() (r int, exists bool) {
+	v := m.addunits
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUnits resets all changes to the "units" field.
+func (m *StockingLogMutation) ResetUnits() {
+	m.units = nil
+	m.addunits = nil
 }
 
 // SetMedicineID sets the "medicine" edge to the Medicine entity by id.
@@ -3590,6 +3476,45 @@ func (m *StockingLogMutation) ResetMedicine() {
 	m.clearedmedicine = false
 }
 
+// SetActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by id.
+func (m *StockingLogMutation) SetActiveIngredientID(id int) {
+	m.active_ingredient = &id
+}
+
+// ClearActiveIngredient clears the "active_ingredient" edge to the ActiveIngredient entity.
+func (m *StockingLogMutation) ClearActiveIngredient() {
+	m.clearedactive_ingredient = true
+}
+
+// ActiveIngredientCleared reports if the "active_ingredient" edge to the ActiveIngredient entity was cleared.
+func (m *StockingLogMutation) ActiveIngredientCleared() bool {
+	return m.clearedactive_ingredient
+}
+
+// ActiveIngredientID returns the "active_ingredient" edge ID in the mutation.
+func (m *StockingLogMutation) ActiveIngredientID() (id int, exists bool) {
+	if m.active_ingredient != nil {
+		return *m.active_ingredient, true
+	}
+	return
+}
+
+// ActiveIngredientIDs returns the "active_ingredient" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ActiveIngredientID instead. It exists only for internal usage by the builders.
+func (m *StockingLogMutation) ActiveIngredientIDs() (ids []int) {
+	if id := m.active_ingredient; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetActiveIngredient resets all changes to the "active_ingredient" edge.
+func (m *StockingLogMutation) ResetActiveIngredient() {
+	m.active_ingredient = nil
+	m.clearedactive_ingredient = false
+}
+
 // Where appends a list predicates to the StockingLogMutation builder.
 func (m *StockingLogMutation) Where(ps ...predicate.StockingLog) {
 	m.predicates = append(m.predicates, ps...)
@@ -3624,12 +3549,15 @@ func (m *StockingLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *StockingLogMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.stocked_at != nil {
 		fields = append(fields, stockinglog.FieldStockedAt)
 	}
-	if m.quantity != nil {
-		fields = append(fields, stockinglog.FieldQuantity)
+	if m.boxes != nil {
+		fields = append(fields, stockinglog.FieldBoxes)
+	}
+	if m.units != nil {
+		fields = append(fields, stockinglog.FieldUnits)
 	}
 	return fields
 }
@@ -3641,8 +3569,10 @@ func (m *StockingLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case stockinglog.FieldStockedAt:
 		return m.StockedAt()
-	case stockinglog.FieldQuantity:
-		return m.Quantity()
+	case stockinglog.FieldBoxes:
+		return m.Boxes()
+	case stockinglog.FieldUnits:
+		return m.Units()
 	}
 	return nil, false
 }
@@ -3654,8 +3584,10 @@ func (m *StockingLogMutation) OldField(ctx context.Context, name string) (ent.Va
 	switch name {
 	case stockinglog.FieldStockedAt:
 		return m.OldStockedAt(ctx)
-	case stockinglog.FieldQuantity:
-		return m.OldQuantity(ctx)
+	case stockinglog.FieldBoxes:
+		return m.OldBoxes(ctx)
+	case stockinglog.FieldUnits:
+		return m.OldUnits(ctx)
 	}
 	return nil, fmt.Errorf("unknown StockingLog field %s", name)
 }
@@ -3672,12 +3604,19 @@ func (m *StockingLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStockedAt(v)
 		return nil
-	case stockinglog.FieldQuantity:
+	case stockinglog.FieldBoxes:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetQuantity(v)
+		m.SetBoxes(v)
+		return nil
+	case stockinglog.FieldUnits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnits(v)
 		return nil
 	}
 	return fmt.Errorf("unknown StockingLog field %s", name)
@@ -3687,8 +3626,11 @@ func (m *StockingLogMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *StockingLogMutation) AddedFields() []string {
 	var fields []string
-	if m.addquantity != nil {
-		fields = append(fields, stockinglog.FieldQuantity)
+	if m.addboxes != nil {
+		fields = append(fields, stockinglog.FieldBoxes)
+	}
+	if m.addunits != nil {
+		fields = append(fields, stockinglog.FieldUnits)
 	}
 	return fields
 }
@@ -3698,8 +3640,10 @@ func (m *StockingLogMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *StockingLogMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case stockinglog.FieldQuantity:
-		return m.AddedQuantity()
+	case stockinglog.FieldBoxes:
+		return m.AddedBoxes()
+	case stockinglog.FieldUnits:
+		return m.AddedUnits()
 	}
 	return nil, false
 }
@@ -3709,12 +3653,19 @@ func (m *StockingLogMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *StockingLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case stockinglog.FieldQuantity:
+	case stockinglog.FieldBoxes:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddQuantity(v)
+		m.AddBoxes(v)
+		return nil
+	case stockinglog.FieldUnits:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUnits(v)
 		return nil
 	}
 	return fmt.Errorf("unknown StockingLog numeric field %s", name)
@@ -3723,7 +3674,14 @@ func (m *StockingLogMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *StockingLogMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(stockinglog.FieldStockedAt) {
+		fields = append(fields, stockinglog.FieldStockedAt)
+	}
+	if m.FieldCleared(stockinglog.FieldBoxes) {
+		fields = append(fields, stockinglog.FieldBoxes)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3736,6 +3694,14 @@ func (m *StockingLogMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *StockingLogMutation) ClearField(name string) error {
+	switch name {
+	case stockinglog.FieldStockedAt:
+		m.ClearStockedAt()
+		return nil
+	case stockinglog.FieldBoxes:
+		m.ClearBoxes()
+		return nil
+	}
 	return fmt.Errorf("unknown StockingLog nullable field %s", name)
 }
 
@@ -3746,8 +3712,11 @@ func (m *StockingLogMutation) ResetField(name string) error {
 	case stockinglog.FieldStockedAt:
 		m.ResetStockedAt()
 		return nil
-	case stockinglog.FieldQuantity:
-		m.ResetQuantity()
+	case stockinglog.FieldBoxes:
+		m.ResetBoxes()
+		return nil
+	case stockinglog.FieldUnits:
+		m.ResetUnits()
 		return nil
 	}
 	return fmt.Errorf("unknown StockingLog field %s", name)
@@ -3755,9 +3724,12 @@ func (m *StockingLogMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *StockingLogMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.medicine != nil {
 		edges = append(edges, stockinglog.EdgeMedicine)
+	}
+	if m.active_ingredient != nil {
+		edges = append(edges, stockinglog.EdgeActiveIngredient)
 	}
 	return edges
 }
@@ -3770,13 +3742,17 @@ func (m *StockingLogMutation) AddedIDs(name string) []ent.Value {
 		if id := m.medicine; id != nil {
 			return []ent.Value{*id}
 		}
+	case stockinglog.EdgeActiveIngredient:
+		if id := m.active_ingredient; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *StockingLogMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -3788,9 +3764,12 @@ func (m *StockingLogMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *StockingLogMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedmedicine {
 		edges = append(edges, stockinglog.EdgeMedicine)
+	}
+	if m.clearedactive_ingredient {
+		edges = append(edges, stockinglog.EdgeActiveIngredient)
 	}
 	return edges
 }
@@ -3801,6 +3780,8 @@ func (m *StockingLogMutation) EdgeCleared(name string) bool {
 	switch name {
 	case stockinglog.EdgeMedicine:
 		return m.clearedmedicine
+	case stockinglog.EdgeActiveIngredient:
+		return m.clearedactive_ingredient
 	}
 	return false
 }
@@ -3812,6 +3793,9 @@ func (m *StockingLogMutation) ClearEdge(name string) error {
 	case stockinglog.EdgeMedicine:
 		m.ClearMedicine()
 		return nil
+	case stockinglog.EdgeActiveIngredient:
+		m.ClearActiveIngredient()
+		return nil
 	}
 	return fmt.Errorf("unknown StockingLog unique edge %s", name)
 }
@@ -3822,6 +3806,9 @@ func (m *StockingLogMutation) ResetEdge(name string) error {
 	switch name {
 	case stockinglog.EdgeMedicine:
 		m.ResetMedicine()
+		return nil
+	case stockinglog.EdgeActiveIngredient:
+		m.ResetActiveIngredient()
 		return nil
 	}
 	return fmt.Errorf("unknown StockingLog edge %s", name)

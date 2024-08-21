@@ -3,6 +3,8 @@
 package stockinglog
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -14,10 +16,14 @@ const (
 	FieldID = "id"
 	// FieldStockedAt holds the string denoting the stocked_at field in the database.
 	FieldStockedAt = "stocked_at"
-	// FieldQuantity holds the string denoting the quantity field in the database.
-	FieldQuantity = "quantity"
+	// FieldBoxes holds the string denoting the boxes field in the database.
+	FieldBoxes = "boxes"
+	// FieldUnits holds the string denoting the units field in the database.
+	FieldUnits = "units"
 	// EdgeMedicine holds the string denoting the medicine edge name in mutations.
 	EdgeMedicine = "medicine"
+	// EdgeActiveIngredient holds the string denoting the active_ingredient edge name in mutations.
+	EdgeActiveIngredient = "active_ingredient"
 	// Table holds the table name of the stockinglog in the database.
 	Table = "stocking_logs"
 	// MedicineTable is the table that holds the medicine relation/edge.
@@ -27,18 +33,27 @@ const (
 	MedicineInverseTable = "medicines"
 	// MedicineColumn is the table column denoting the medicine relation/edge.
 	MedicineColumn = "medicine_stocking_logs"
+	// ActiveIngredientTable is the table that holds the active_ingredient relation/edge.
+	ActiveIngredientTable = "stocking_logs"
+	// ActiveIngredientInverseTable is the table name for the ActiveIngredient entity.
+	// It exists in this package in order to avoid circular dependency with the "activeingredient" package.
+	ActiveIngredientInverseTable = "active_ingredients"
+	// ActiveIngredientColumn is the table column denoting the active_ingredient relation/edge.
+	ActiveIngredientColumn = "active_ingredient_stocking_logs"
 )
 
 // Columns holds all SQL columns for stockinglog fields.
 var Columns = []string{
 	FieldID,
 	FieldStockedAt,
-	FieldQuantity,
+	FieldBoxes,
+	FieldUnits,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "stocking_logs"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"active_ingredient_stocking_logs",
 	"medicine_stocking_logs",
 }
 
@@ -58,8 +73,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
-	QuantityValidator func(int) error
+	// DefaultStockedAt holds the default value on creation for the "stocked_at" field.
+	DefaultStockedAt func() time.Time
+	// DefaultBoxes holds the default value on creation for the "boxes" field.
+	DefaultBoxes int
+	// BoxesValidator is a validator for the "boxes" field. It is called by the builders before save.
+	BoxesValidator func(int) error
+	// UnitsValidator is a validator for the "units" field. It is called by the builders before save.
+	UnitsValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the StockingLog queries.
@@ -75,9 +96,14 @@ func ByStockedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStockedAt, opts...).ToFunc()
 }
 
-// ByQuantity orders the results by the quantity field.
-func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldQuantity, opts...).ToFunc()
+// ByBoxes orders the results by the boxes field.
+func ByBoxes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBoxes, opts...).ToFunc()
+}
+
+// ByUnits orders the results by the units field.
+func ByUnits(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnits, opts...).ToFunc()
 }
 
 // ByMedicineField orders the results by medicine field.
@@ -86,10 +112,24 @@ func ByMedicineField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMedicineStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByActiveIngredientField orders the results by active_ingredient field.
+func ByActiveIngredientField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newActiveIngredientStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newMedicineStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MedicineInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, MedicineTable, MedicineColumn),
+	)
+}
+func newActiveIngredientStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ActiveIngredientInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ActiveIngredientTable, ActiveIngredientColumn),
 	)
 }

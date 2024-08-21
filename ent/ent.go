@@ -10,7 +10,6 @@ import (
 	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/prescription"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
 	"reflect"
 	"sync"
@@ -82,7 +81,6 @@ func checkColumn(table, column string) error {
 			consumptionlog.Table:   consumptionlog.ValidColumn,
 			medicine.Table:         medicine.ValidColumn,
 			prescription.Table:     prescription.ValidColumn,
-			purchase.Table:         purchase.ValidColumn,
 			stockinglog.Table:      stockinglog.ValidColumn,
 		})
 	})

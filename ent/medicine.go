@@ -7,7 +7,6 @@ import (
 	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"strings"
-	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -24,8 +23,6 @@ type Medicine struct {
 	Mah string `json:"mah,omitempty"`
 	// Dosage holds the value of the "dosage" field.
 	Dosage float64 `json:"dosage,omitempty"`
-	// Unit holds the value of the "unit" field.
-	Unit string `json:"unit,omitempty"`
 	// Atc holds the value of the "atc" field.
 	Atc string `json:"atc,omitempty"`
 	// Package holds the value of the "package" field.
@@ -34,10 +31,6 @@ type Medicine struct {
 	Form string `json:"form,omitempty"`
 	// BoxSize holds the value of the "box_size" field.
 	BoxSize int `json:"box_size,omitempty"`
-	// Stock holds the value of the "stock" field.
-	Stock float32 `json:"stock,omitempty"`
-	// LastStockUpdate holds the value of the "last_stock_update" field.
-	LastStockUpdate time.Time `json:"last_stock_update,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MedicineQuery when eager-loading is set.
 	Edges                       MedicineEdges `json:"edges"`
@@ -47,30 +40,19 @@ type Medicine struct {
 
 // MedicineEdges holds the relations/edges for other nodes in the graph.
 type MedicineEdges struct {
-	// Purchases holds the value of the purchases edge.
-	Purchases []*Purchase `json:"purchases,omitempty"`
 	// StockingLogs holds the value of the stocking_logs edge.
 	StockingLogs []*StockingLog `json:"stocking_logs,omitempty"`
 	// ActiveIngredient holds the value of the active_ingredient edge.
 	ActiveIngredient *ActiveIngredient `json:"active_ingredient,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
-}
-
-// PurchasesOrErr returns the Purchases value or an error if the edge
-// was not loaded in eager-loading.
-func (e MedicineEdges) PurchasesOrErr() ([]*Purchase, error) {
-	if e.loadedTypes[0] {
-		return e.Purchases, nil
-	}
-	return nil, &NotLoadedError{edge: "purchases"}
+	loadedTypes [2]bool
 }
 
 // StockingLogsOrErr returns the StockingLogs value or an error if the edge
 // was not loaded in eager-loading.
 func (e MedicineEdges) StockingLogsOrErr() ([]*StockingLog, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.StockingLogs, nil
 	}
 	return nil, &NotLoadedError{edge: "stocking_logs"}
@@ -81,7 +63,7 @@ func (e MedicineEdges) StockingLogsOrErr() ([]*StockingLog, error) {
 func (e MedicineEdges) ActiveIngredientOrErr() (*ActiveIngredient, error) {
 	if e.ActiveIngredient != nil {
 		return e.ActiveIngredient, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: activeingredient.Label}
 	}
 	return nil, &NotLoadedError{edge: "active_ingredient"}
@@ -92,14 +74,12 @@ func (*Medicine) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case medicine.FieldDosage, medicine.FieldStock:
+		case medicine.FieldDosage:
 			values[i] = new(sql.NullFloat64)
 		case medicine.FieldID, medicine.FieldBoxSize:
 			values[i] = new(sql.NullInt64)
-		case medicine.FieldName, medicine.FieldMah, medicine.FieldUnit, medicine.FieldAtc, medicine.FieldPackage, medicine.FieldForm:
+		case medicine.FieldName, medicine.FieldMah, medicine.FieldAtc, medicine.FieldPackage, medicine.FieldForm:
 			values[i] = new(sql.NullString)
-		case medicine.FieldLastStockUpdate:
-			values[i] = new(sql.NullTime)
 		case medicine.ForeignKeys[0]: // active_ingredient_medicines
 			values[i] = new(sql.NullInt64)
 		default:
@@ -141,12 +121,6 @@ func (m *Medicine) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Dosage = value.Float64
 			}
-		case medicine.FieldUnit:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field unit", values[i])
-			} else if value.Valid {
-				m.Unit = value.String
-			}
 		case medicine.FieldAtc:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field atc", values[i])
@@ -171,18 +145,6 @@ func (m *Medicine) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.BoxSize = int(value.Int64)
 			}
-		case medicine.FieldStock:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field stock", values[i])
-			} else if value.Valid {
-				m.Stock = float32(value.Float64)
-			}
-		case medicine.FieldLastStockUpdate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field last_stock_update", values[i])
-			} else if value.Valid {
-				m.LastStockUpdate = value.Time
-			}
 		case medicine.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field active_ingredient_medicines", value)
@@ -201,11 +163,6 @@ func (m *Medicine) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (m *Medicine) Value(name string) (ent.Value, error) {
 	return m.selectValues.Get(name)
-}
-
-// QueryPurchases queries the "purchases" edge of the Medicine entity.
-func (m *Medicine) QueryPurchases() *PurchaseQuery {
-	return NewMedicineClient(m.config).QueryPurchases(m)
 }
 
 // QueryStockingLogs queries the "stocking_logs" edge of the Medicine entity.
@@ -250,9 +207,6 @@ func (m *Medicine) String() string {
 	builder.WriteString("dosage=")
 	builder.WriteString(fmt.Sprintf("%v", m.Dosage))
 	builder.WriteString(", ")
-	builder.WriteString("unit=")
-	builder.WriteString(m.Unit)
-	builder.WriteString(", ")
 	builder.WriteString("atc=")
 	builder.WriteString(m.Atc)
 	builder.WriteString(", ")
@@ -264,12 +218,6 @@ func (m *Medicine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("box_size=")
 	builder.WriteString(fmt.Sprintf("%v", m.BoxSize))
-	builder.WriteString(", ")
-	builder.WriteString("stock=")
-	builder.WriteString(fmt.Sprintf("%v", m.Stock))
-	builder.WriteString(", ")
-	builder.WriteString("last_stock_update=")
-	builder.WriteString(m.LastStockUpdate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

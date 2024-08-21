@@ -43,6 +43,33 @@ func (clu *ConsumptionLogUpdate) SetNillableConsumedAt(t *time.Time) *Consumptio
 	return clu
 }
 
+// ClearConsumedAt clears the value of the "consumed_at" field.
+func (clu *ConsumptionLogUpdate) ClearConsumedAt() *ConsumptionLogUpdate {
+	clu.mutation.ClearConsumedAt()
+	return clu
+}
+
+// SetUnits sets the "units" field.
+func (clu *ConsumptionLogUpdate) SetUnits(i int) *ConsumptionLogUpdate {
+	clu.mutation.ResetUnits()
+	clu.mutation.SetUnits(i)
+	return clu
+}
+
+// SetNillableUnits sets the "units" field if the given value is not nil.
+func (clu *ConsumptionLogUpdate) SetNillableUnits(i *int) *ConsumptionLogUpdate {
+	if i != nil {
+		clu.SetUnits(*i)
+	}
+	return clu
+}
+
+// AddUnits adds i to the "units" field.
+func (clu *ConsumptionLogUpdate) AddUnits(i int) *ConsumptionLogUpdate {
+	clu.mutation.AddUnits(i)
+	return clu
+}
+
 // SetPrescriptionID sets the "prescription" edge to the Prescription entity by ID.
 func (clu *ConsumptionLogUpdate) SetPrescriptionID(id int) *ConsumptionLogUpdate {
 	clu.mutation.SetPrescriptionID(id)
@@ -100,7 +127,20 @@ func (clu *ConsumptionLogUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (clu *ConsumptionLogUpdate) check() error {
+	if v, ok := clu.mutation.Units(); ok {
+		if err := consumptionlog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "ConsumptionLog.units": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (clu *ConsumptionLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := clu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(consumptionlog.Table, consumptionlog.Columns, sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt))
 	if ps := clu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -111,6 +151,15 @@ func (clu *ConsumptionLogUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if value, ok := clu.mutation.ConsumedAt(); ok {
 		_spec.SetField(consumptionlog.FieldConsumedAt, field.TypeTime, value)
+	}
+	if clu.mutation.ConsumedAtCleared() {
+		_spec.ClearField(consumptionlog.FieldConsumedAt, field.TypeTime)
+	}
+	if value, ok := clu.mutation.Units(); ok {
+		_spec.SetField(consumptionlog.FieldUnits, field.TypeInt, value)
+	}
+	if value, ok := clu.mutation.AddedUnits(); ok {
+		_spec.AddField(consumptionlog.FieldUnits, field.TypeInt, value)
 	}
 	if clu.mutation.PrescriptionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -172,6 +221,33 @@ func (cluo *ConsumptionLogUpdateOne) SetNillableConsumedAt(t *time.Time) *Consum
 	if t != nil {
 		cluo.SetConsumedAt(*t)
 	}
+	return cluo
+}
+
+// ClearConsumedAt clears the value of the "consumed_at" field.
+func (cluo *ConsumptionLogUpdateOne) ClearConsumedAt() *ConsumptionLogUpdateOne {
+	cluo.mutation.ClearConsumedAt()
+	return cluo
+}
+
+// SetUnits sets the "units" field.
+func (cluo *ConsumptionLogUpdateOne) SetUnits(i int) *ConsumptionLogUpdateOne {
+	cluo.mutation.ResetUnits()
+	cluo.mutation.SetUnits(i)
+	return cluo
+}
+
+// SetNillableUnits sets the "units" field if the given value is not nil.
+func (cluo *ConsumptionLogUpdateOne) SetNillableUnits(i *int) *ConsumptionLogUpdateOne {
+	if i != nil {
+		cluo.SetUnits(*i)
+	}
+	return cluo
+}
+
+// AddUnits adds i to the "units" field.
+func (cluo *ConsumptionLogUpdateOne) AddUnits(i int) *ConsumptionLogUpdateOne {
+	cluo.mutation.AddUnits(i)
 	return cluo
 }
 
@@ -245,7 +321,20 @@ func (cluo *ConsumptionLogUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cluo *ConsumptionLogUpdateOne) check() error {
+	if v, ok := cluo.mutation.Units(); ok {
+		if err := consumptionlog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "ConsumptionLog.units": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cluo *ConsumptionLogUpdateOne) sqlSave(ctx context.Context) (_node *ConsumptionLog, err error) {
+	if err := cluo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(consumptionlog.Table, consumptionlog.Columns, sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt))
 	id, ok := cluo.mutation.ID()
 	if !ok {
@@ -273,6 +362,15 @@ func (cluo *ConsumptionLogUpdateOne) sqlSave(ctx context.Context) (_node *Consum
 	}
 	if value, ok := cluo.mutation.ConsumedAt(); ok {
 		_spec.SetField(consumptionlog.FieldConsumedAt, field.TypeTime, value)
+	}
+	if cluo.mutation.ConsumedAtCleared() {
+		_spec.ClearField(consumptionlog.FieldConsumedAt, field.TypeTime)
+	}
+	if value, ok := cluo.mutation.Units(); ok {
+		_spec.SetField(consumptionlog.FieldUnits, field.TypeInt, value)
+	}
+	if value, ok := cluo.mutation.AddedUnits(); ok {
+		_spec.AddField(consumptionlog.FieldUnits, field.TypeInt, value)
 	}
 	if cluo.mutation.PrescriptionCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -7,8 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"fstiffo/pills/ent/activeingredient"
+	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/prescription"
+	"fstiffo/pills/ent/stockinglog"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -24,6 +27,46 @@ type ActiveIngredientCreate struct {
 // SetName sets the "name" field.
 func (aic *ActiveIngredientCreate) SetName(s string) *ActiveIngredientCreate {
 	aic.mutation.SetName(s)
+	return aic
+}
+
+// SetStock sets the "stock" field.
+func (aic *ActiveIngredientCreate) SetStock(i int) *ActiveIngredientCreate {
+	aic.mutation.SetStock(i)
+	return aic
+}
+
+// SetNillableStock sets the "stock" field if the given value is not nil.
+func (aic *ActiveIngredientCreate) SetNillableStock(i *int) *ActiveIngredientCreate {
+	if i != nil {
+		aic.SetStock(*i)
+	}
+	return aic
+}
+
+// SetUnit sets the "unit" field.
+func (aic *ActiveIngredientCreate) SetUnit(a activeingredient.Unit) *ActiveIngredientCreate {
+	aic.mutation.SetUnit(a)
+	return aic
+}
+
+// SetNillableUnit sets the "unit" field if the given value is not nil.
+func (aic *ActiveIngredientCreate) SetNillableUnit(a *activeingredient.Unit) *ActiveIngredientCreate {
+	if a != nil {
+		aic.SetUnit(*a)
+	}
+	return aic
+}
+
+// SetLastStockedAt sets the "last_stocked_at" field.
+func (aic *ActiveIngredientCreate) SetLastStockedAt(t time.Time) *ActiveIngredientCreate {
+	aic.mutation.SetLastStockedAt(t)
+	return aic
+}
+
+// SetLastConsumedAt sets the "last_consumed_at" field.
+func (aic *ActiveIngredientCreate) SetLastConsumedAt(t time.Time) *ActiveIngredientCreate {
+	aic.mutation.SetLastConsumedAt(t)
 	return aic
 }
 
@@ -57,6 +100,36 @@ func (aic *ActiveIngredientCreate) AddPrescriptions(p ...*Prescription) *ActiveI
 	return aic.AddPrescriptionIDs(ids...)
 }
 
+// AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
+func (aic *ActiveIngredientCreate) AddStockingLogIDs(ids ...int) *ActiveIngredientCreate {
+	aic.mutation.AddStockingLogIDs(ids...)
+	return aic
+}
+
+// AddStockingLogs adds the "stocking_logs" edges to the StockingLog entity.
+func (aic *ActiveIngredientCreate) AddStockingLogs(s ...*StockingLog) *ActiveIngredientCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return aic.AddStockingLogIDs(ids...)
+}
+
+// AddConsumptionLogIDs adds the "consumption_logs" edge to the ConsumptionLog entity by IDs.
+func (aic *ActiveIngredientCreate) AddConsumptionLogIDs(ids ...int) *ActiveIngredientCreate {
+	aic.mutation.AddConsumptionLogIDs(ids...)
+	return aic
+}
+
+// AddConsumptionLogs adds the "consumption_logs" edges to the ConsumptionLog entity.
+func (aic *ActiveIngredientCreate) AddConsumptionLogs(c ...*ConsumptionLog) *ActiveIngredientCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return aic.AddConsumptionLogIDs(ids...)
+}
+
 // Mutation returns the ActiveIngredientMutation object of the builder.
 func (aic *ActiveIngredientCreate) Mutation() *ActiveIngredientMutation {
 	return aic.mutation
@@ -64,6 +137,7 @@ func (aic *ActiveIngredientCreate) Mutation() *ActiveIngredientMutation {
 
 // Save creates the ActiveIngredient in the database.
 func (aic *ActiveIngredientCreate) Save(ctx context.Context) (*ActiveIngredient, error) {
+	aic.defaults()
 	return withHooks(ctx, aic.sqlSave, aic.mutation, aic.hooks)
 }
 
@@ -89,6 +163,18 @@ func (aic *ActiveIngredientCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (aic *ActiveIngredientCreate) defaults() {
+	if _, ok := aic.mutation.Stock(); !ok {
+		v := activeingredient.DefaultStock
+		aic.mutation.SetStock(v)
+	}
+	if _, ok := aic.mutation.Unit(); !ok {
+		v := activeingredient.DefaultUnit
+		aic.mutation.SetUnit(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (aic *ActiveIngredientCreate) check() error {
 	if _, ok := aic.mutation.Name(); !ok {
@@ -98,6 +184,17 @@ func (aic *ActiveIngredientCreate) check() error {
 		if err := activeingredient.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.name": %w`, err)}
 		}
+	}
+	if v, ok := aic.mutation.Unit(); ok {
+		if err := activeingredient.UnitValidator(v); err != nil {
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.unit": %w`, err)}
+		}
+	}
+	if _, ok := aic.mutation.LastStockedAt(); !ok {
+		return &ValidationError{Name: "last_stocked_at", err: errors.New(`ent: missing required field "ActiveIngredient.last_stocked_at"`)}
+	}
+	if _, ok := aic.mutation.LastConsumedAt(); !ok {
+		return &ValidationError{Name: "last_consumed_at", err: errors.New(`ent: missing required field "ActiveIngredient.last_consumed_at"`)}
 	}
 	return nil
 }
@@ -128,6 +225,22 @@ func (aic *ActiveIngredientCreate) createSpec() (*ActiveIngredient, *sqlgraph.Cr
 	if value, ok := aic.mutation.Name(); ok {
 		_spec.SetField(activeingredient.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := aic.mutation.Stock(); ok {
+		_spec.SetField(activeingredient.FieldStock, field.TypeInt, value)
+		_node.Stock = value
+	}
+	if value, ok := aic.mutation.Unit(); ok {
+		_spec.SetField(activeingredient.FieldUnit, field.TypeEnum, value)
+		_node.Unit = value
+	}
+	if value, ok := aic.mutation.LastStockedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastStockedAt, field.TypeTime, value)
+		_node.LastStockedAt = value
+	}
+	if value, ok := aic.mutation.LastConsumedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastConsumedAt, field.TypeTime, value)
+		_node.LastConsumedAt = value
 	}
 	if nodes := aic.mutation.MedicinesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -161,6 +274,38 @@ func (aic *ActiveIngredientCreate) createSpec() (*ActiveIngredient, *sqlgraph.Cr
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := aic.mutation.StockingLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := aic.mutation.ConsumptionLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -182,6 +327,7 @@ func (aicb *ActiveIngredientCreateBulk) Save(ctx context.Context) ([]*ActiveIngr
 	for i := range aicb.builders {
 		func(i int, root context.Context) {
 			builder := aicb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ActiveIngredientMutation)
 				if !ok {

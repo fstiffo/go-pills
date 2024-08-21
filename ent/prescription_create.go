@@ -28,12 +28,6 @@ func (pc *PrescriptionCreate) SetDosage(i int) *PrescriptionCreate {
 	return pc
 }
 
-// SetUnit sets the "unit" field.
-func (pc *PrescriptionCreate) SetUnit(s string) *PrescriptionCreate {
-	pc.mutation.SetUnit(s)
-	return pc
-}
-
 // SetDosageFrequency sets the "dosage_frequency" field.
 func (pc *PrescriptionCreate) SetDosageFrequency(i int) *PrescriptionCreate {
 	pc.mutation.SetDosageFrequency(i)
@@ -165,14 +159,6 @@ func (pc *PrescriptionCreate) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.Unit(); !ok {
-		return &ValidationError{Name: "unit", err: errors.New(`ent: missing required field "Prescription.unit"`)}
-	}
-	if v, ok := pc.mutation.Unit(); ok {
-		if err := prescription.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Prescription.unit": %w`, err)}
-		}
-	}
 	if v, ok := pc.mutation.DosageFrequency(); ok {
 		if err := prescription.DosageFrequencyValidator(v); err != nil {
 			return &ValidationError{Name: "dosage_frequency", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage_frequency": %w`, err)}
@@ -207,10 +193,6 @@ func (pc *PrescriptionCreate) createSpec() (*Prescription, *sqlgraph.CreateSpec)
 	if value, ok := pc.mutation.Dosage(); ok {
 		_spec.SetField(prescription.FieldDosage, field.TypeInt, value)
 		_node.Dosage = value
-	}
-	if value, ok := pc.mutation.Unit(); ok {
-		_spec.SetField(prescription.FieldUnit, field.TypeString, value)
-		_node.Unit = value
 	}
 	if value, ok := pc.mutation.DosageFrequency(); ok {
 		_spec.SetField(prescription.FieldDosageFrequency, field.TypeInt, value)

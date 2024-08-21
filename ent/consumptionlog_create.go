@@ -27,6 +27,20 @@ func (clc *ConsumptionLogCreate) SetConsumedAt(t time.Time) *ConsumptionLogCreat
 	return clc
 }
 
+// SetNillableConsumedAt sets the "consumed_at" field if the given value is not nil.
+func (clc *ConsumptionLogCreate) SetNillableConsumedAt(t *time.Time) *ConsumptionLogCreate {
+	if t != nil {
+		clc.SetConsumedAt(*t)
+	}
+	return clc
+}
+
+// SetUnits sets the "units" field.
+func (clc *ConsumptionLogCreate) SetUnits(i int) *ConsumptionLogCreate {
+	clc.mutation.SetUnits(i)
+	return clc
+}
+
 // SetPrescriptionID sets the "prescription" edge to the Prescription entity by ID.
 func (clc *ConsumptionLogCreate) SetPrescriptionID(id int) *ConsumptionLogCreate {
 	clc.mutation.SetPrescriptionID(id)
@@ -53,6 +67,7 @@ func (clc *ConsumptionLogCreate) Mutation() *ConsumptionLogMutation {
 
 // Save creates the ConsumptionLog in the database.
 func (clc *ConsumptionLogCreate) Save(ctx context.Context) (*ConsumptionLog, error) {
+	clc.defaults()
 	return withHooks(ctx, clc.sqlSave, clc.mutation, clc.hooks)
 }
 
@@ -78,10 +93,23 @@ func (clc *ConsumptionLogCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (clc *ConsumptionLogCreate) defaults() {
+	if _, ok := clc.mutation.ConsumedAt(); !ok {
+		v := consumptionlog.DefaultConsumedAt()
+		clc.mutation.SetConsumedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (clc *ConsumptionLogCreate) check() error {
-	if _, ok := clc.mutation.ConsumedAt(); !ok {
-		return &ValidationError{Name: "consumed_at", err: errors.New(`ent: missing required field "ConsumptionLog.consumed_at"`)}
+	if _, ok := clc.mutation.Units(); !ok {
+		return &ValidationError{Name: "units", err: errors.New(`ent: missing required field "ConsumptionLog.units"`)}
+	}
+	if v, ok := clc.mutation.Units(); ok {
+		if err := consumptionlog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "ConsumptionLog.units": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -112,6 +140,10 @@ func (clc *ConsumptionLogCreate) createSpec() (*ConsumptionLog, *sqlgraph.Create
 	if value, ok := clc.mutation.ConsumedAt(); ok {
 		_spec.SetField(consumptionlog.FieldConsumedAt, field.TypeTime, value)
 		_node.ConsumedAt = value
+	}
+	if value, ok := clc.mutation.Units(); ok {
+		_spec.SetField(consumptionlog.FieldUnits, field.TypeInt, value)
+		_node.Units = value
 	}
 	if nodes := clc.mutation.PrescriptionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -151,6 +183,7 @@ func (clcb *ConsumptionLogCreateBulk) Save(ctx context.Context) ([]*ConsumptionL
 	for i := range clcb.builders {
 		func(i int, root context.Context) {
 			builder := clcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ConsumptionLogMutation)
 				if !ok {

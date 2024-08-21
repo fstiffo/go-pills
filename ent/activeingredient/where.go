@@ -4,6 +4,7 @@ package activeingredient
 
 import (
 	"fstiffo/pills/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -57,6 +58,21 @@ func IDLTE(id int) predicate.ActiveIngredient {
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.ActiveIngredient {
 	return predicate.ActiveIngredient(sql.FieldEQ(FieldName, v))
+}
+
+// Stock applies equality check predicate on the "stock" field. It's identical to StockEQ.
+func Stock(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldStock, v))
+}
+
+// LastStockedAt applies equality check predicate on the "last_stocked_at" field. It's identical to LastStockedAtEQ.
+func LastStockedAt(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldLastStockedAt, v))
+}
+
+// LastConsumedAt applies equality check predicate on the "last_consumed_at" field. It's identical to LastConsumedAtEQ.
+func LastConsumedAt(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldLastConsumedAt, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -124,6 +140,166 @@ func NameContainsFold(v string) predicate.ActiveIngredient {
 	return predicate.ActiveIngredient(sql.FieldContainsFold(FieldName, v))
 }
 
+// StockEQ applies the EQ predicate on the "stock" field.
+func StockEQ(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldStock, v))
+}
+
+// StockNEQ applies the NEQ predicate on the "stock" field.
+func StockNEQ(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNEQ(FieldStock, v))
+}
+
+// StockIn applies the In predicate on the "stock" field.
+func StockIn(vs ...int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIn(FieldStock, vs...))
+}
+
+// StockNotIn applies the NotIn predicate on the "stock" field.
+func StockNotIn(vs ...int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotIn(FieldStock, vs...))
+}
+
+// StockGT applies the GT predicate on the "stock" field.
+func StockGT(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGT(FieldStock, v))
+}
+
+// StockGTE applies the GTE predicate on the "stock" field.
+func StockGTE(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGTE(FieldStock, v))
+}
+
+// StockLT applies the LT predicate on the "stock" field.
+func StockLT(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLT(FieldStock, v))
+}
+
+// StockLTE applies the LTE predicate on the "stock" field.
+func StockLTE(v int) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLTE(FieldStock, v))
+}
+
+// StockIsNil applies the IsNil predicate on the "stock" field.
+func StockIsNil() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIsNull(FieldStock))
+}
+
+// StockNotNil applies the NotNil predicate on the "stock" field.
+func StockNotNil() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotNull(FieldStock))
+}
+
+// UnitEQ applies the EQ predicate on the "unit" field.
+func UnitEQ(v Unit) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldUnit, v))
+}
+
+// UnitNEQ applies the NEQ predicate on the "unit" field.
+func UnitNEQ(v Unit) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNEQ(FieldUnit, v))
+}
+
+// UnitIn applies the In predicate on the "unit" field.
+func UnitIn(vs ...Unit) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIn(FieldUnit, vs...))
+}
+
+// UnitNotIn applies the NotIn predicate on the "unit" field.
+func UnitNotIn(vs ...Unit) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotIn(FieldUnit, vs...))
+}
+
+// UnitIsNil applies the IsNil predicate on the "unit" field.
+func UnitIsNil() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIsNull(FieldUnit))
+}
+
+// UnitNotNil applies the NotNil predicate on the "unit" field.
+func UnitNotNil() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotNull(FieldUnit))
+}
+
+// LastStockedAtEQ applies the EQ predicate on the "last_stocked_at" field.
+func LastStockedAtEQ(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldLastStockedAt, v))
+}
+
+// LastStockedAtNEQ applies the NEQ predicate on the "last_stocked_at" field.
+func LastStockedAtNEQ(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNEQ(FieldLastStockedAt, v))
+}
+
+// LastStockedAtIn applies the In predicate on the "last_stocked_at" field.
+func LastStockedAtIn(vs ...time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIn(FieldLastStockedAt, vs...))
+}
+
+// LastStockedAtNotIn applies the NotIn predicate on the "last_stocked_at" field.
+func LastStockedAtNotIn(vs ...time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotIn(FieldLastStockedAt, vs...))
+}
+
+// LastStockedAtGT applies the GT predicate on the "last_stocked_at" field.
+func LastStockedAtGT(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGT(FieldLastStockedAt, v))
+}
+
+// LastStockedAtGTE applies the GTE predicate on the "last_stocked_at" field.
+func LastStockedAtGTE(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGTE(FieldLastStockedAt, v))
+}
+
+// LastStockedAtLT applies the LT predicate on the "last_stocked_at" field.
+func LastStockedAtLT(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLT(FieldLastStockedAt, v))
+}
+
+// LastStockedAtLTE applies the LTE predicate on the "last_stocked_at" field.
+func LastStockedAtLTE(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLTE(FieldLastStockedAt, v))
+}
+
+// LastConsumedAtEQ applies the EQ predicate on the "last_consumed_at" field.
+func LastConsumedAtEQ(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldEQ(FieldLastConsumedAt, v))
+}
+
+// LastConsumedAtNEQ applies the NEQ predicate on the "last_consumed_at" field.
+func LastConsumedAtNEQ(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNEQ(FieldLastConsumedAt, v))
+}
+
+// LastConsumedAtIn applies the In predicate on the "last_consumed_at" field.
+func LastConsumedAtIn(vs ...time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldIn(FieldLastConsumedAt, vs...))
+}
+
+// LastConsumedAtNotIn applies the NotIn predicate on the "last_consumed_at" field.
+func LastConsumedAtNotIn(vs ...time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldNotIn(FieldLastConsumedAt, vs...))
+}
+
+// LastConsumedAtGT applies the GT predicate on the "last_consumed_at" field.
+func LastConsumedAtGT(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGT(FieldLastConsumedAt, v))
+}
+
+// LastConsumedAtGTE applies the GTE predicate on the "last_consumed_at" field.
+func LastConsumedAtGTE(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldGTE(FieldLastConsumedAt, v))
+}
+
+// LastConsumedAtLT applies the LT predicate on the "last_consumed_at" field.
+func LastConsumedAtLT(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLT(FieldLastConsumedAt, v))
+}
+
+// LastConsumedAtLTE applies the LTE predicate on the "last_consumed_at" field.
+func LastConsumedAtLTE(v time.Time) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(sql.FieldLTE(FieldLastConsumedAt, v))
+}
+
 // HasMedicines applies the HasEdge predicate on the "medicines" edge.
 func HasMedicines() predicate.ActiveIngredient {
 	return predicate.ActiveIngredient(func(s *sql.Selector) {
@@ -162,6 +338,52 @@ func HasPrescriptions() predicate.ActiveIngredient {
 func HasPrescriptionsWith(preds ...predicate.Prescription) predicate.ActiveIngredient {
 	return predicate.ActiveIngredient(func(s *sql.Selector) {
 		step := newPrescriptionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStockingLogs applies the HasEdge predicate on the "stocking_logs" edge.
+func HasStockingLogs() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StockingLogsTable, StockingLogsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStockingLogsWith applies the HasEdge predicate on the "stocking_logs" edge with a given conditions (other predicates).
+func HasStockingLogsWith(preds ...predicate.StockingLog) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(func(s *sql.Selector) {
+		step := newStockingLogsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasConsumptionLogs applies the HasEdge predicate on the "consumption_logs" edge.
+func HasConsumptionLogs() predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionLogsTable, ConsumptionLogsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConsumptionLogsWith applies the HasEdge predicate on the "consumption_logs" edge with a given conditions (other predicates).
+func HasConsumptionLogsWith(preds ...predicate.ConsumptionLog) predicate.ActiveIngredient {
+	return predicate.ActiveIngredient(func(s *sql.Selector) {
+		step := newConsumptionLogsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

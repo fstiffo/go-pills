@@ -8,9 +8,7 @@ import (
 	"fmt"
 	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
-	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -41,12 +39,6 @@ func (mc *MedicineCreate) SetDosage(f float64) *MedicineCreate {
 	return mc
 }
 
-// SetUnit sets the "unit" field.
-func (mc *MedicineCreate) SetUnit(s string) *MedicineCreate {
-	mc.mutation.SetUnit(s)
-	return mc
-}
-
 // SetAtc sets the "atc" field.
 func (mc *MedicineCreate) SetAtc(s string) *MedicineCreate {
 	mc.mutation.SetAtc(s)
@@ -69,41 +61,6 @@ func (mc *MedicineCreate) SetForm(s string) *MedicineCreate {
 func (mc *MedicineCreate) SetBoxSize(i int) *MedicineCreate {
 	mc.mutation.SetBoxSize(i)
 	return mc
-}
-
-// SetStock sets the "stock" field.
-func (mc *MedicineCreate) SetStock(f float32) *MedicineCreate {
-	mc.mutation.SetStock(f)
-	return mc
-}
-
-// SetNillableStock sets the "stock" field if the given value is not nil.
-func (mc *MedicineCreate) SetNillableStock(f *float32) *MedicineCreate {
-	if f != nil {
-		mc.SetStock(*f)
-	}
-	return mc
-}
-
-// SetLastStockUpdate sets the "last_stock_update" field.
-func (mc *MedicineCreate) SetLastStockUpdate(t time.Time) *MedicineCreate {
-	mc.mutation.SetLastStockUpdate(t)
-	return mc
-}
-
-// AddPurchaseIDs adds the "purchases" edge to the Purchase entity by IDs.
-func (mc *MedicineCreate) AddPurchaseIDs(ids ...int) *MedicineCreate {
-	mc.mutation.AddPurchaseIDs(ids...)
-	return mc
-}
-
-// AddPurchases adds the "purchases" edges to the Purchase entity.
-func (mc *MedicineCreate) AddPurchases(p ...*Purchase) *MedicineCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return mc.AddPurchaseIDs(ids...)
 }
 
 // AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
@@ -147,7 +104,6 @@ func (mc *MedicineCreate) Mutation() *MedicineMutation {
 
 // Save creates the Medicine in the database.
 func (mc *MedicineCreate) Save(ctx context.Context) (*Medicine, error) {
-	mc.defaults()
 	return withHooks(ctx, mc.sqlSave, mc.mutation, mc.hooks)
 }
 
@@ -170,14 +126,6 @@ func (mc *MedicineCreate) Exec(ctx context.Context) error {
 func (mc *MedicineCreate) ExecX(ctx context.Context) {
 	if err := mc.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (mc *MedicineCreate) defaults() {
-	if _, ok := mc.mutation.Stock(); !ok {
-		v := medicine.DefaultStock
-		mc.mutation.SetStock(v)
 	}
 }
 
@@ -207,14 +155,6 @@ func (mc *MedicineCreate) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Medicine.dosage": %w`, err)}
 		}
 	}
-	if _, ok := mc.mutation.Unit(); !ok {
-		return &ValidationError{Name: "unit", err: errors.New(`ent: missing required field "Medicine.unit"`)}
-	}
-	if v, ok := mc.mutation.Unit(); ok {
-		if err := medicine.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Medicine.unit": %w`, err)}
-		}
-	}
 	if _, ok := mc.mutation.Atc(); !ok {
 		return &ValidationError{Name: "atc", err: errors.New(`ent: missing required field "Medicine.atc"`)}
 	}
@@ -236,9 +176,6 @@ func (mc *MedicineCreate) check() error {
 		if err := medicine.BoxSizeValidator(v); err != nil {
 			return &ValidationError{Name: "box_size", err: fmt.Errorf(`ent: validator failed for field "Medicine.box_size": %w`, err)}
 		}
-	}
-	if _, ok := mc.mutation.LastStockUpdate(); !ok {
-		return &ValidationError{Name: "last_stock_update", err: errors.New(`ent: missing required field "Medicine.last_stock_update"`)}
 	}
 	return nil
 }
@@ -278,10 +215,6 @@ func (mc *MedicineCreate) createSpec() (*Medicine, *sqlgraph.CreateSpec) {
 		_spec.SetField(medicine.FieldDosage, field.TypeFloat64, value)
 		_node.Dosage = value
 	}
-	if value, ok := mc.mutation.Unit(); ok {
-		_spec.SetField(medicine.FieldUnit, field.TypeString, value)
-		_node.Unit = value
-	}
 	if value, ok := mc.mutation.Atc(); ok {
 		_spec.SetField(medicine.FieldAtc, field.TypeString, value)
 		_node.Atc = value
@@ -297,30 +230,6 @@ func (mc *MedicineCreate) createSpec() (*Medicine, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.BoxSize(); ok {
 		_spec.SetField(medicine.FieldBoxSize, field.TypeInt, value)
 		_node.BoxSize = value
-	}
-	if value, ok := mc.mutation.Stock(); ok {
-		_spec.SetField(medicine.FieldStock, field.TypeFloat32, value)
-		_node.Stock = value
-	}
-	if value, ok := mc.mutation.LastStockUpdate(); ok {
-		_spec.SetField(medicine.FieldLastStockUpdate, field.TypeTime, value)
-		_node.LastStockUpdate = value
-	}
-	if nodes := mc.mutation.PurchasesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   medicine.PurchasesTable,
-			Columns: []string{medicine.PurchasesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(purchase.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.StockingLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -376,7 +285,6 @@ func (mcb *MedicineCreateBulk) Save(ctx context.Context) ([]*Medicine, error) {
 	for i := range mcb.builders {
 		func(i int, root context.Context) {
 			builder := mcb.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*MedicineMutation)
 				if !ok {

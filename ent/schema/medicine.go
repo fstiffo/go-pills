@@ -23,8 +23,6 @@ func (Medicine) Fields() []ent.Field {
 			NotEmpty(),
 		field.Float("dosage").
 			Positive(),
-		field.String("unit").
-			NotEmpty(),
 		field.String("atc").
 			Unique().
 			NotEmpty().
@@ -34,20 +32,16 @@ func (Medicine) Fields() []ent.Field {
 		field.String("form"),
 		field.Int("box_size").
 			Positive(),
-		field.Float32("stock").
-			Optional().
-			Default(0.0),
-		field.Time("last_stock_update"),
 	}
 }
 
 // Edges of the Medicine.
 func (Medicine) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("purchases", Purchase.Type),
 		edge.To("stocking_logs", StockingLog.Type),
 		edge.From("active_ingredient", ActiveIngredient.Type).
 			Ref("medicines").
+			Required().
 			Unique(),
 	}
 }

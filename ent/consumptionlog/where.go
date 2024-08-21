@@ -60,6 +60,11 @@ func ConsumedAt(v time.Time) predicate.ConsumptionLog {
 	return predicate.ConsumptionLog(sql.FieldEQ(FieldConsumedAt, v))
 }
 
+// Units applies equality check predicate on the "units" field. It's identical to UnitsEQ.
+func Units(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldEQ(FieldUnits, v))
+}
+
 // ConsumedAtEQ applies the EQ predicate on the "consumed_at" field.
 func ConsumedAtEQ(v time.Time) predicate.ConsumptionLog {
 	return predicate.ConsumptionLog(sql.FieldEQ(FieldConsumedAt, v))
@@ -98,6 +103,56 @@ func ConsumedAtLT(v time.Time) predicate.ConsumptionLog {
 // ConsumedAtLTE applies the LTE predicate on the "consumed_at" field.
 func ConsumedAtLTE(v time.Time) predicate.ConsumptionLog {
 	return predicate.ConsumptionLog(sql.FieldLTE(FieldConsumedAt, v))
+}
+
+// ConsumedAtIsNil applies the IsNil predicate on the "consumed_at" field.
+func ConsumedAtIsNil() predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldIsNull(FieldConsumedAt))
+}
+
+// ConsumedAtNotNil applies the NotNil predicate on the "consumed_at" field.
+func ConsumedAtNotNil() predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldNotNull(FieldConsumedAt))
+}
+
+// UnitsEQ applies the EQ predicate on the "units" field.
+func UnitsEQ(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldEQ(FieldUnits, v))
+}
+
+// UnitsNEQ applies the NEQ predicate on the "units" field.
+func UnitsNEQ(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldNEQ(FieldUnits, v))
+}
+
+// UnitsIn applies the In predicate on the "units" field.
+func UnitsIn(vs ...int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldIn(FieldUnits, vs...))
+}
+
+// UnitsNotIn applies the NotIn predicate on the "units" field.
+func UnitsNotIn(vs ...int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldNotIn(FieldUnits, vs...))
+}
+
+// UnitsGT applies the GT predicate on the "units" field.
+func UnitsGT(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldGT(FieldUnits, v))
+}
+
+// UnitsGTE applies the GTE predicate on the "units" field.
+func UnitsGTE(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldGTE(FieldUnits, v))
+}
+
+// UnitsLT applies the LT predicate on the "units" field.
+func UnitsLT(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldLT(FieldUnits, v))
+}
+
+// UnitsLTE applies the LTE predicate on the "units" field.
+func UnitsLTE(v int) predicate.ConsumptionLog {
+	return predicate.ConsumptionLog(sql.FieldLTE(FieldUnits, v))
 }
 
 // HasPrescription applies the HasEdge predicate on the "prescription" edge.

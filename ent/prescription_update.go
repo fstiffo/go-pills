@@ -51,20 +51,6 @@ func (pu *PrescriptionUpdate) AddDosage(i int) *PrescriptionUpdate {
 	return pu
 }
 
-// SetUnit sets the "unit" field.
-func (pu *PrescriptionUpdate) SetUnit(s string) *PrescriptionUpdate {
-	pu.mutation.SetUnit(s)
-	return pu
-}
-
-// SetNillableUnit sets the "unit" field if the given value is not nil.
-func (pu *PrescriptionUpdate) SetNillableUnit(s *string) *PrescriptionUpdate {
-	if s != nil {
-		pu.SetUnit(*s)
-	}
-	return pu
-}
-
 // SetDosageFrequency sets the "dosage_frequency" field.
 func (pu *PrescriptionUpdate) SetDosageFrequency(i int) *PrescriptionUpdate {
 	pu.mutation.ResetDosageFrequency()
@@ -232,11 +218,6 @@ func (pu *PrescriptionUpdate) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Unit(); ok {
-		if err := prescription.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Prescription.unit": %w`, err)}
-		}
-	}
 	if v, ok := pu.mutation.DosageFrequency(); ok {
 		if err := prescription.DosageFrequencyValidator(v); err != nil {
 			return &ValidationError{Name: "dosage_frequency", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage_frequency": %w`, err)}
@@ -262,9 +243,6 @@ func (pu *PrescriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.AddedDosage(); ok {
 		_spec.AddField(prescription.FieldDosage, field.TypeInt, value)
-	}
-	if value, ok := pu.mutation.Unit(); ok {
-		_spec.SetField(prescription.FieldUnit, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.DosageFrequency(); ok {
 		_spec.SetField(prescription.FieldDosageFrequency, field.TypeInt, value)
@@ -399,20 +377,6 @@ func (puo *PrescriptionUpdateOne) SetNillableDosage(i *int) *PrescriptionUpdateO
 // AddDosage adds i to the "dosage" field.
 func (puo *PrescriptionUpdateOne) AddDosage(i int) *PrescriptionUpdateOne {
 	puo.mutation.AddDosage(i)
-	return puo
-}
-
-// SetUnit sets the "unit" field.
-func (puo *PrescriptionUpdateOne) SetUnit(s string) *PrescriptionUpdateOne {
-	puo.mutation.SetUnit(s)
-	return puo
-}
-
-// SetNillableUnit sets the "unit" field if the given value is not nil.
-func (puo *PrescriptionUpdateOne) SetNillableUnit(s *string) *PrescriptionUpdateOne {
-	if s != nil {
-		puo.SetUnit(*s)
-	}
 	return puo
 }
 
@@ -596,11 +560,6 @@ func (puo *PrescriptionUpdateOne) check() error {
 			return &ValidationError{Name: "dosage", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Unit(); ok {
-		if err := prescription.UnitValidator(v); err != nil {
-			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "Prescription.unit": %w`, err)}
-		}
-	}
 	if v, ok := puo.mutation.DosageFrequency(); ok {
 		if err := prescription.DosageFrequencyValidator(v); err != nil {
 			return &ValidationError{Name: "dosage_frequency", err: fmt.Errorf(`ent: validator failed for field "Prescription.dosage_frequency": %w`, err)}
@@ -643,9 +602,6 @@ func (puo *PrescriptionUpdateOne) sqlSave(ctx context.Context) (_node *Prescript
 	}
 	if value, ok := puo.mutation.AddedDosage(); ok {
 		_spec.AddField(prescription.FieldDosage, field.TypeInt, value)
-	}
-	if value, ok := puo.mutation.Unit(); ok {
-		_spec.SetField(prescription.FieldUnit, field.TypeString, value)
 	}
 	if value, ok := puo.mutation.DosageFrequency(); ok {
 		_spec.SetField(prescription.FieldDosageFrequency, field.TypeInt, value)

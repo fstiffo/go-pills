@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"fstiffo/pills/ent/activeingredient"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -18,6 +19,14 @@ type ActiveIngredient struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Stock holds the value of the "stock" field.
+	Stock int `json:"stock,omitempty"`
+	// Unit holds the value of the "unit" field.
+	Unit activeingredient.Unit `json:"unit,omitempty"`
+	// LastStockedAt holds the value of the "last_stocked_at" field.
+	LastStockedAt time.Time `json:"last_stocked_at,omitempty"`
+	// LastConsumedAt holds the value of the "last_consumed_at" field.
+	LastConsumedAt time.Time `json:"last_consumed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ActiveIngredientQuery when eager-loading is set.
 	Edges        ActiveIngredientEdges `json:"edges"`
@@ -30,9 +39,13 @@ type ActiveIngredientEdges struct {
 	Medicines []*Medicine `json:"medicines,omitempty"`
 	// Prescriptions holds the value of the prescriptions edge.
 	Prescriptions []*Prescription `json:"prescriptions,omitempty"`
+	// StockingLogs holds the value of the stocking_logs edge.
+	StockingLogs []*StockingLog `json:"stocking_logs,omitempty"`
+	// ConsumptionLogs holds the value of the consumption_logs edge.
+	ConsumptionLogs []*ConsumptionLog `json:"consumption_logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // MedicinesOrErr returns the Medicines value or an error if the edge
@@ -53,15 +66,35 @@ func (e ActiveIngredientEdges) PrescriptionsOrErr() ([]*Prescription, error) {
 	return nil, &NotLoadedError{edge: "prescriptions"}
 }
 
+// StockingLogsOrErr returns the StockingLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e ActiveIngredientEdges) StockingLogsOrErr() ([]*StockingLog, error) {
+	if e.loadedTypes[2] {
+		return e.StockingLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "stocking_logs"}
+}
+
+// ConsumptionLogsOrErr returns the ConsumptionLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e ActiveIngredientEdges) ConsumptionLogsOrErr() ([]*ConsumptionLog, error) {
+	if e.loadedTypes[3] {
+		return e.ConsumptionLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "consumption_logs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ActiveIngredient) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case activeingredient.FieldID:
+		case activeingredient.FieldID, activeingredient.FieldStock:
 			values[i] = new(sql.NullInt64)
-		case activeingredient.FieldName:
+		case activeingredient.FieldName, activeingredient.FieldUnit:
 			values[i] = new(sql.NullString)
+		case activeingredient.FieldLastStockedAt, activeingredient.FieldLastConsumedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -89,6 +122,30 @@ func (ai *ActiveIngredient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ai.Name = value.String
 			}
+		case activeingredient.FieldStock:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field stock", values[i])
+			} else if value.Valid {
+				ai.Stock = int(value.Int64)
+			}
+		case activeingredient.FieldUnit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unit", values[i])
+			} else if value.Valid {
+				ai.Unit = activeingredient.Unit(value.String)
+			}
+		case activeingredient.FieldLastStockedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_stocked_at", values[i])
+			} else if value.Valid {
+				ai.LastStockedAt = value.Time
+			}
+		case activeingredient.FieldLastConsumedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_consumed_at", values[i])
+			} else if value.Valid {
+				ai.LastConsumedAt = value.Time
+			}
 		default:
 			ai.selectValues.Set(columns[i], values[i])
 		}
@@ -110,6 +167,16 @@ func (ai *ActiveIngredient) QueryMedicines() *MedicineQuery {
 // QueryPrescriptions queries the "prescriptions" edge of the ActiveIngredient entity.
 func (ai *ActiveIngredient) QueryPrescriptions() *PrescriptionQuery {
 	return NewActiveIngredientClient(ai.config).QueryPrescriptions(ai)
+}
+
+// QueryStockingLogs queries the "stocking_logs" edge of the ActiveIngredient entity.
+func (ai *ActiveIngredient) QueryStockingLogs() *StockingLogQuery {
+	return NewActiveIngredientClient(ai.config).QueryStockingLogs(ai)
+}
+
+// QueryConsumptionLogs queries the "consumption_logs" edge of the ActiveIngredient entity.
+func (ai *ActiveIngredient) QueryConsumptionLogs() *ConsumptionLogQuery {
+	return NewActiveIngredientClient(ai.config).QueryConsumptionLogs(ai)
 }
 
 // Update returns a builder for updating this ActiveIngredient.
@@ -137,6 +204,18 @@ func (ai *ActiveIngredient) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", ai.ID))
 	builder.WriteString("name=")
 	builder.WriteString(ai.Name)
+	builder.WriteString(", ")
+	builder.WriteString("stock=")
+	builder.WriteString(fmt.Sprintf("%v", ai.Stock))
+	builder.WriteString(", ")
+	builder.WriteString("unit=")
+	builder.WriteString(fmt.Sprintf("%v", ai.Unit))
+	builder.WriteString(", ")
+	builder.WriteString("last_stocked_at=")
+	builder.WriteString(ai.LastStockedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("last_consumed_at=")
+	builder.WriteString(ai.LastConsumedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

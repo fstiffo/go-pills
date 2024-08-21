@@ -17,6 +17,14 @@ func (ActiveIngredient) Fields() []ent.Field {
 		field.String("name").
 			Unique().
 			NotEmpty(),
+		field.Int("stock").
+			Default(0),
+		field.Enum("unit").
+			Values("mg", "g", "ml", "u").
+			Optional().
+			Default("mg"),
+		field.Time("last_stocked_at"),
+		field.Time("last_consumed_at"),
 	}
 }
 
@@ -25,5 +33,7 @@ func (ActiveIngredient) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("medicines", Medicine.Type),
 		edge.To("prescriptions", Prescription.Type),
+		edge.To("stocking_logs", StockingLog.Type),
+		edge.To("consumption_logs", ConsumptionLog.Type),
 	}
 }

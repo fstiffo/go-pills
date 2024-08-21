@@ -17,13 +17,10 @@ type Prescription struct {
 func (Prescription) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("dosage").Positive(),
-		field.String("unit").NotEmpty(),
 		field.Int("dosage_frequency").
-			Optional().
 			Positive().
 			Default(1), // Every 1 day
 		field.Time("start_date").
-			Optional().
 			Default(func() time.Time {
 				return time.Now()
 			}),
@@ -37,6 +34,7 @@ func (Prescription) Edges() []ent.Edge {
 		edge.To("comsumption_logs", ConsumptionLog.Type),
 		edge.From("active_ingredient", ActiveIngredient.Type).
 			Ref("prescriptions").
+			Required().
 			Unique(),
 	}
 }

@@ -18,8 +18,5 @@ type Medicine func(*sql.Selector)
 // Prescription is the predicate function for prescription builders.
 type Prescription func(*sql.Selector)
 
-// Purchase is the predicate function for purchase builders.
-type Purchase func(*sql.Selector)
-
 // StockingLog is the predicate function for stockinglog builders.
 type StockingLog func(*sql.Selector)

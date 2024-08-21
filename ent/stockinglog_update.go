@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
 	"fstiffo/pills/ent/stockinglog"
@@ -43,24 +44,57 @@ func (slu *StockingLogUpdate) SetNillableStockedAt(t *time.Time) *StockingLogUpd
 	return slu
 }
 
-// SetQuantity sets the "quantity" field.
-func (slu *StockingLogUpdate) SetQuantity(i int) *StockingLogUpdate {
-	slu.mutation.ResetQuantity()
-	slu.mutation.SetQuantity(i)
+// ClearStockedAt clears the value of the "stocked_at" field.
+func (slu *StockingLogUpdate) ClearStockedAt() *StockingLogUpdate {
+	slu.mutation.ClearStockedAt()
 	return slu
 }
 
-// SetNillableQuantity sets the "quantity" field if the given value is not nil.
-func (slu *StockingLogUpdate) SetNillableQuantity(i *int) *StockingLogUpdate {
+// SetBoxes sets the "boxes" field.
+func (slu *StockingLogUpdate) SetBoxes(i int) *StockingLogUpdate {
+	slu.mutation.ResetBoxes()
+	slu.mutation.SetBoxes(i)
+	return slu
+}
+
+// SetNillableBoxes sets the "boxes" field if the given value is not nil.
+func (slu *StockingLogUpdate) SetNillableBoxes(i *int) *StockingLogUpdate {
 	if i != nil {
-		slu.SetQuantity(*i)
+		slu.SetBoxes(*i)
 	}
 	return slu
 }
 
-// AddQuantity adds i to the "quantity" field.
-func (slu *StockingLogUpdate) AddQuantity(i int) *StockingLogUpdate {
-	slu.mutation.AddQuantity(i)
+// AddBoxes adds i to the "boxes" field.
+func (slu *StockingLogUpdate) AddBoxes(i int) *StockingLogUpdate {
+	slu.mutation.AddBoxes(i)
+	return slu
+}
+
+// ClearBoxes clears the value of the "boxes" field.
+func (slu *StockingLogUpdate) ClearBoxes() *StockingLogUpdate {
+	slu.mutation.ClearBoxes()
+	return slu
+}
+
+// SetUnits sets the "units" field.
+func (slu *StockingLogUpdate) SetUnits(i int) *StockingLogUpdate {
+	slu.mutation.ResetUnits()
+	slu.mutation.SetUnits(i)
+	return slu
+}
+
+// SetNillableUnits sets the "units" field if the given value is not nil.
+func (slu *StockingLogUpdate) SetNillableUnits(i *int) *StockingLogUpdate {
+	if i != nil {
+		slu.SetUnits(*i)
+	}
+	return slu
+}
+
+// AddUnits adds i to the "units" field.
+func (slu *StockingLogUpdate) AddUnits(i int) *StockingLogUpdate {
+	slu.mutation.AddUnits(i)
 	return slu
 }
 
@@ -83,6 +117,25 @@ func (slu *StockingLogUpdate) SetMedicine(m *Medicine) *StockingLogUpdate {
 	return slu.SetMedicineID(m.ID)
 }
 
+// SetActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID.
+func (slu *StockingLogUpdate) SetActiveIngredientID(id int) *StockingLogUpdate {
+	slu.mutation.SetActiveIngredientID(id)
+	return slu
+}
+
+// SetNillableActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID if the given value is not nil.
+func (slu *StockingLogUpdate) SetNillableActiveIngredientID(id *int) *StockingLogUpdate {
+	if id != nil {
+		slu = slu.SetActiveIngredientID(*id)
+	}
+	return slu
+}
+
+// SetActiveIngredient sets the "active_ingredient" edge to the ActiveIngredient entity.
+func (slu *StockingLogUpdate) SetActiveIngredient(a *ActiveIngredient) *StockingLogUpdate {
+	return slu.SetActiveIngredientID(a.ID)
+}
+
 // Mutation returns the StockingLogMutation object of the builder.
 func (slu *StockingLogUpdate) Mutation() *StockingLogMutation {
 	return slu.mutation
@@ -91,6 +144,12 @@ func (slu *StockingLogUpdate) Mutation() *StockingLogMutation {
 // ClearMedicine clears the "medicine" edge to the Medicine entity.
 func (slu *StockingLogUpdate) ClearMedicine() *StockingLogUpdate {
 	slu.mutation.ClearMedicine()
+	return slu
+}
+
+// ClearActiveIngredient clears the "active_ingredient" edge to the ActiveIngredient entity.
+func (slu *StockingLogUpdate) ClearActiveIngredient() *StockingLogUpdate {
+	slu.mutation.ClearActiveIngredient()
 	return slu
 }
 
@@ -123,9 +182,14 @@ func (slu *StockingLogUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (slu *StockingLogUpdate) check() error {
-	if v, ok := slu.mutation.Quantity(); ok {
-		if err := stockinglog.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "StockingLog.quantity": %w`, err)}
+	if v, ok := slu.mutation.Boxes(); ok {
+		if err := stockinglog.BoxesValidator(v); err != nil {
+			return &ValidationError{Name: "boxes", err: fmt.Errorf(`ent: validator failed for field "StockingLog.boxes": %w`, err)}
+		}
+	}
+	if v, ok := slu.mutation.Units(); ok {
+		if err := stockinglog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "StockingLog.units": %w`, err)}
 		}
 	}
 	return nil
@@ -146,11 +210,23 @@ func (slu *StockingLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := slu.mutation.StockedAt(); ok {
 		_spec.SetField(stockinglog.FieldStockedAt, field.TypeTime, value)
 	}
-	if value, ok := slu.mutation.Quantity(); ok {
-		_spec.SetField(stockinglog.FieldQuantity, field.TypeInt, value)
+	if slu.mutation.StockedAtCleared() {
+		_spec.ClearField(stockinglog.FieldStockedAt, field.TypeTime)
 	}
-	if value, ok := slu.mutation.AddedQuantity(); ok {
-		_spec.AddField(stockinglog.FieldQuantity, field.TypeInt, value)
+	if value, ok := slu.mutation.Boxes(); ok {
+		_spec.SetField(stockinglog.FieldBoxes, field.TypeInt, value)
+	}
+	if value, ok := slu.mutation.AddedBoxes(); ok {
+		_spec.AddField(stockinglog.FieldBoxes, field.TypeInt, value)
+	}
+	if slu.mutation.BoxesCleared() {
+		_spec.ClearField(stockinglog.FieldBoxes, field.TypeInt)
+	}
+	if value, ok := slu.mutation.Units(); ok {
+		_spec.SetField(stockinglog.FieldUnits, field.TypeInt, value)
+	}
+	if value, ok := slu.mutation.AddedUnits(); ok {
+		_spec.AddField(stockinglog.FieldUnits, field.TypeInt, value)
 	}
 	if slu.mutation.MedicineCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -174,6 +250,35 @@ func (slu *StockingLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(medicine.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if slu.mutation.ActiveIngredientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   stockinglog.ActiveIngredientTable,
+			Columns: []string{stockinglog.ActiveIngredientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeingredient.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := slu.mutation.ActiveIngredientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   stockinglog.ActiveIngredientTable,
+			Columns: []string{stockinglog.ActiveIngredientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeingredient.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -215,24 +320,57 @@ func (sluo *StockingLogUpdateOne) SetNillableStockedAt(t *time.Time) *StockingLo
 	return sluo
 }
 
-// SetQuantity sets the "quantity" field.
-func (sluo *StockingLogUpdateOne) SetQuantity(i int) *StockingLogUpdateOne {
-	sluo.mutation.ResetQuantity()
-	sluo.mutation.SetQuantity(i)
+// ClearStockedAt clears the value of the "stocked_at" field.
+func (sluo *StockingLogUpdateOne) ClearStockedAt() *StockingLogUpdateOne {
+	sluo.mutation.ClearStockedAt()
 	return sluo
 }
 
-// SetNillableQuantity sets the "quantity" field if the given value is not nil.
-func (sluo *StockingLogUpdateOne) SetNillableQuantity(i *int) *StockingLogUpdateOne {
+// SetBoxes sets the "boxes" field.
+func (sluo *StockingLogUpdateOne) SetBoxes(i int) *StockingLogUpdateOne {
+	sluo.mutation.ResetBoxes()
+	sluo.mutation.SetBoxes(i)
+	return sluo
+}
+
+// SetNillableBoxes sets the "boxes" field if the given value is not nil.
+func (sluo *StockingLogUpdateOne) SetNillableBoxes(i *int) *StockingLogUpdateOne {
 	if i != nil {
-		sluo.SetQuantity(*i)
+		sluo.SetBoxes(*i)
 	}
 	return sluo
 }
 
-// AddQuantity adds i to the "quantity" field.
-func (sluo *StockingLogUpdateOne) AddQuantity(i int) *StockingLogUpdateOne {
-	sluo.mutation.AddQuantity(i)
+// AddBoxes adds i to the "boxes" field.
+func (sluo *StockingLogUpdateOne) AddBoxes(i int) *StockingLogUpdateOne {
+	sluo.mutation.AddBoxes(i)
+	return sluo
+}
+
+// ClearBoxes clears the value of the "boxes" field.
+func (sluo *StockingLogUpdateOne) ClearBoxes() *StockingLogUpdateOne {
+	sluo.mutation.ClearBoxes()
+	return sluo
+}
+
+// SetUnits sets the "units" field.
+func (sluo *StockingLogUpdateOne) SetUnits(i int) *StockingLogUpdateOne {
+	sluo.mutation.ResetUnits()
+	sluo.mutation.SetUnits(i)
+	return sluo
+}
+
+// SetNillableUnits sets the "units" field if the given value is not nil.
+func (sluo *StockingLogUpdateOne) SetNillableUnits(i *int) *StockingLogUpdateOne {
+	if i != nil {
+		sluo.SetUnits(*i)
+	}
+	return sluo
+}
+
+// AddUnits adds i to the "units" field.
+func (sluo *StockingLogUpdateOne) AddUnits(i int) *StockingLogUpdateOne {
+	sluo.mutation.AddUnits(i)
 	return sluo
 }
 
@@ -255,6 +393,25 @@ func (sluo *StockingLogUpdateOne) SetMedicine(m *Medicine) *StockingLogUpdateOne
 	return sluo.SetMedicineID(m.ID)
 }
 
+// SetActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID.
+func (sluo *StockingLogUpdateOne) SetActiveIngredientID(id int) *StockingLogUpdateOne {
+	sluo.mutation.SetActiveIngredientID(id)
+	return sluo
+}
+
+// SetNillableActiveIngredientID sets the "active_ingredient" edge to the ActiveIngredient entity by ID if the given value is not nil.
+func (sluo *StockingLogUpdateOne) SetNillableActiveIngredientID(id *int) *StockingLogUpdateOne {
+	if id != nil {
+		sluo = sluo.SetActiveIngredientID(*id)
+	}
+	return sluo
+}
+
+// SetActiveIngredient sets the "active_ingredient" edge to the ActiveIngredient entity.
+func (sluo *StockingLogUpdateOne) SetActiveIngredient(a *ActiveIngredient) *StockingLogUpdateOne {
+	return sluo.SetActiveIngredientID(a.ID)
+}
+
 // Mutation returns the StockingLogMutation object of the builder.
 func (sluo *StockingLogUpdateOne) Mutation() *StockingLogMutation {
 	return sluo.mutation
@@ -263,6 +420,12 @@ func (sluo *StockingLogUpdateOne) Mutation() *StockingLogMutation {
 // ClearMedicine clears the "medicine" edge to the Medicine entity.
 func (sluo *StockingLogUpdateOne) ClearMedicine() *StockingLogUpdateOne {
 	sluo.mutation.ClearMedicine()
+	return sluo
+}
+
+// ClearActiveIngredient clears the "active_ingredient" edge to the ActiveIngredient entity.
+func (sluo *StockingLogUpdateOne) ClearActiveIngredient() *StockingLogUpdateOne {
+	sluo.mutation.ClearActiveIngredient()
 	return sluo
 }
 
@@ -308,9 +471,14 @@ func (sluo *StockingLogUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (sluo *StockingLogUpdateOne) check() error {
-	if v, ok := sluo.mutation.Quantity(); ok {
-		if err := stockinglog.QuantityValidator(v); err != nil {
-			return &ValidationError{Name: "quantity", err: fmt.Errorf(`ent: validator failed for field "StockingLog.quantity": %w`, err)}
+	if v, ok := sluo.mutation.Boxes(); ok {
+		if err := stockinglog.BoxesValidator(v); err != nil {
+			return &ValidationError{Name: "boxes", err: fmt.Errorf(`ent: validator failed for field "StockingLog.boxes": %w`, err)}
+		}
+	}
+	if v, ok := sluo.mutation.Units(); ok {
+		if err := stockinglog.UnitsValidator(v); err != nil {
+			return &ValidationError{Name: "units", err: fmt.Errorf(`ent: validator failed for field "StockingLog.units": %w`, err)}
 		}
 	}
 	return nil
@@ -348,11 +516,23 @@ func (sluo *StockingLogUpdateOne) sqlSave(ctx context.Context) (_node *StockingL
 	if value, ok := sluo.mutation.StockedAt(); ok {
 		_spec.SetField(stockinglog.FieldStockedAt, field.TypeTime, value)
 	}
-	if value, ok := sluo.mutation.Quantity(); ok {
-		_spec.SetField(stockinglog.FieldQuantity, field.TypeInt, value)
+	if sluo.mutation.StockedAtCleared() {
+		_spec.ClearField(stockinglog.FieldStockedAt, field.TypeTime)
 	}
-	if value, ok := sluo.mutation.AddedQuantity(); ok {
-		_spec.AddField(stockinglog.FieldQuantity, field.TypeInt, value)
+	if value, ok := sluo.mutation.Boxes(); ok {
+		_spec.SetField(stockinglog.FieldBoxes, field.TypeInt, value)
+	}
+	if value, ok := sluo.mutation.AddedBoxes(); ok {
+		_spec.AddField(stockinglog.FieldBoxes, field.TypeInt, value)
+	}
+	if sluo.mutation.BoxesCleared() {
+		_spec.ClearField(stockinglog.FieldBoxes, field.TypeInt)
+	}
+	if value, ok := sluo.mutation.Units(); ok {
+		_spec.SetField(stockinglog.FieldUnits, field.TypeInt, value)
+	}
+	if value, ok := sluo.mutation.AddedUnits(); ok {
+		_spec.AddField(stockinglog.FieldUnits, field.TypeInt, value)
 	}
 	if sluo.mutation.MedicineCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -376,6 +556,35 @@ func (sluo *StockingLogUpdateOne) sqlSave(ctx context.Context) (_node *StockingL
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(medicine.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if sluo.mutation.ActiveIngredientCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   stockinglog.ActiveIngredientTable,
+			Columns: []string{stockinglog.ActiveIngredientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeingredient.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sluo.mutation.ActiveIngredientIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   stockinglog.ActiveIngredientTable,
+			Columns: []string{stockinglog.ActiveIngredientColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(activeingredient.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -18,8 +18,6 @@ const (
 	FieldMah = "mah"
 	// FieldDosage holds the string denoting the dosage field in the database.
 	FieldDosage = "dosage"
-	// FieldUnit holds the string denoting the unit field in the database.
-	FieldUnit = "unit"
 	// FieldAtc holds the string denoting the atc field in the database.
 	FieldAtc = "atc"
 	// FieldPackage holds the string denoting the package field in the database.
@@ -28,25 +26,12 @@ const (
 	FieldForm = "form"
 	// FieldBoxSize holds the string denoting the box_size field in the database.
 	FieldBoxSize = "box_size"
-	// FieldStock holds the string denoting the stock field in the database.
-	FieldStock = "stock"
-	// FieldLastStockUpdate holds the string denoting the last_stock_update field in the database.
-	FieldLastStockUpdate = "last_stock_update"
-	// EdgePurchases holds the string denoting the purchases edge name in mutations.
-	EdgePurchases = "purchases"
 	// EdgeStockingLogs holds the string denoting the stocking_logs edge name in mutations.
 	EdgeStockingLogs = "stocking_logs"
 	// EdgeActiveIngredient holds the string denoting the active_ingredient edge name in mutations.
 	EdgeActiveIngredient = "active_ingredient"
 	// Table holds the table name of the medicine in the database.
 	Table = "medicines"
-	// PurchasesTable is the table that holds the purchases relation/edge.
-	PurchasesTable = "purchases"
-	// PurchasesInverseTable is the table name for the Purchase entity.
-	// It exists in this package in order to avoid circular dependency with the "purchase" package.
-	PurchasesInverseTable = "purchases"
-	// PurchasesColumn is the table column denoting the purchases relation/edge.
-	PurchasesColumn = "medicine_purchases"
 	// StockingLogsTable is the table that holds the stocking_logs relation/edge.
 	StockingLogsTable = "stocking_logs"
 	// StockingLogsInverseTable is the table name for the StockingLog entity.
@@ -69,13 +54,10 @@ var Columns = []string{
 	FieldName,
 	FieldMah,
 	FieldDosage,
-	FieldUnit,
 	FieldAtc,
 	FieldPackage,
 	FieldForm,
 	FieldBoxSize,
-	FieldStock,
-	FieldLastStockUpdate,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "medicines"
@@ -106,14 +88,10 @@ var (
 	MahValidator func(string) error
 	// DosageValidator is a validator for the "dosage" field. It is called by the builders before save.
 	DosageValidator func(float64) error
-	// UnitValidator is a validator for the "unit" field. It is called by the builders before save.
-	UnitValidator func(string) error
 	// AtcValidator is a validator for the "atc" field. It is called by the builders before save.
 	AtcValidator func(string) error
 	// BoxSizeValidator is a validator for the "box_size" field. It is called by the builders before save.
 	BoxSizeValidator func(int) error
-	// DefaultStock holds the default value on creation for the "stock" field.
-	DefaultStock float32
 )
 
 // OrderOption defines the ordering options for the Medicine queries.
@@ -139,11 +117,6 @@ func ByDosage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDosage, opts...).ToFunc()
 }
 
-// ByUnit orders the results by the unit field.
-func ByUnit(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUnit, opts...).ToFunc()
-}
-
 // ByAtc orders the results by the atc field.
 func ByAtc(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAtc, opts...).ToFunc()
@@ -162,30 +135,6 @@ func ByForm(opts ...sql.OrderTermOption) OrderOption {
 // ByBoxSize orders the results by the box_size field.
 func ByBoxSize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBoxSize, opts...).ToFunc()
-}
-
-// ByStock orders the results by the stock field.
-func ByStock(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStock, opts...).ToFunc()
-}
-
-// ByLastStockUpdate orders the results by the last_stock_update field.
-func ByLastStockUpdate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLastStockUpdate, opts...).ToFunc()
-}
-
-// ByPurchasesCount orders the results by purchases count.
-func ByPurchasesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newPurchasesStep(), opts...)
-	}
-}
-
-// ByPurchases orders the results by purchases terms.
-func ByPurchases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPurchasesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
 }
 
 // ByStockingLogsCount orders the results by stocking_logs count.
@@ -207,13 +156,6 @@ func ByActiveIngredientField(field string, opts ...sql.OrderTermOption) OrderOpt
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newActiveIngredientStep(), sql.OrderByField(field, opts...))
 	}
-}
-func newPurchasesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PurchasesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, PurchasesTable, PurchasesColumn),
-	)
 }
 func newStockingLogsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

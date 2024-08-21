@@ -3,6 +3,8 @@
 package activeingredient
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -14,10 +16,22 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldStock holds the string denoting the stock field in the database.
+	FieldStock = "stock"
+	// FieldUnit holds the string denoting the unit field in the database.
+	FieldUnit = "unit"
+	// FieldLastStockedAt holds the string denoting the last_stocked_at field in the database.
+	FieldLastStockedAt = "last_stocked_at"
+	// FieldLastConsumedAt holds the string denoting the last_consumed_at field in the database.
+	FieldLastConsumedAt = "last_consumed_at"
 	// EdgeMedicines holds the string denoting the medicines edge name in mutations.
 	EdgeMedicines = "medicines"
 	// EdgePrescriptions holds the string denoting the prescriptions edge name in mutations.
 	EdgePrescriptions = "prescriptions"
+	// EdgeStockingLogs holds the string denoting the stocking_logs edge name in mutations.
+	EdgeStockingLogs = "stocking_logs"
+	// EdgeConsumptionLogs holds the string denoting the consumption_logs edge name in mutations.
+	EdgeConsumptionLogs = "consumption_logs"
 	// Table holds the table name of the activeingredient in the database.
 	Table = "active_ingredients"
 	// MedicinesTable is the table that holds the medicines relation/edge.
@@ -34,12 +48,30 @@ const (
 	PrescriptionsInverseTable = "prescriptions"
 	// PrescriptionsColumn is the table column denoting the prescriptions relation/edge.
 	PrescriptionsColumn = "active_ingredient_prescriptions"
+	// StockingLogsTable is the table that holds the stocking_logs relation/edge.
+	StockingLogsTable = "stocking_logs"
+	// StockingLogsInverseTable is the table name for the StockingLog entity.
+	// It exists in this package in order to avoid circular dependency with the "stockinglog" package.
+	StockingLogsInverseTable = "stocking_logs"
+	// StockingLogsColumn is the table column denoting the stocking_logs relation/edge.
+	StockingLogsColumn = "active_ingredient_stocking_logs"
+	// ConsumptionLogsTable is the table that holds the consumption_logs relation/edge.
+	ConsumptionLogsTable = "consumption_logs"
+	// ConsumptionLogsInverseTable is the table name for the ConsumptionLog entity.
+	// It exists in this package in order to avoid circular dependency with the "consumptionlog" package.
+	ConsumptionLogsInverseTable = "consumption_logs"
+	// ConsumptionLogsColumn is the table column denoting the consumption_logs relation/edge.
+	ConsumptionLogsColumn = "active_ingredient_consumption_logs"
 )
 
 // Columns holds all SQL columns for activeingredient fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldStock,
+	FieldUnit,
+	FieldLastStockedAt,
+	FieldLastConsumedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -55,7 +87,37 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultStock holds the default value on creation for the "stock" field.
+	DefaultStock int
 )
+
+// Unit defines the type for the "unit" enum field.
+type Unit string
+
+// UnitMg is the default value of the Unit enum.
+const DefaultUnit = UnitMg
+
+// Unit values.
+const (
+	UnitMg Unit = "mg"
+	UnitG  Unit = "g"
+	UnitMl Unit = "ml"
+	UnitU  Unit = "u"
+)
+
+func (u Unit) String() string {
+	return string(u)
+}
+
+// UnitValidator is a validator for the "unit" field enum values. It is called by the builders before save.
+func UnitValidator(u Unit) error {
+	switch u {
+	case UnitMg, UnitG, UnitMl, UnitU:
+		return nil
+	default:
+		return fmt.Errorf("activeingredient: invalid enum value for unit field: %q", u)
+	}
+}
 
 // OrderOption defines the ordering options for the ActiveIngredient queries.
 type OrderOption func(*sql.Selector)
@@ -68,6 +130,26 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByStock orders the results by the stock field.
+func ByStock(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStock, opts...).ToFunc()
+}
+
+// ByUnit orders the results by the unit field.
+func ByUnit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnit, opts...).ToFunc()
+}
+
+// ByLastStockedAt orders the results by the last_stocked_at field.
+func ByLastStockedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastStockedAt, opts...).ToFunc()
+}
+
+// ByLastConsumedAt orders the results by the last_consumed_at field.
+func ByLastConsumedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastConsumedAt, opts...).ToFunc()
 }
 
 // ByMedicinesCount orders the results by medicines count.
@@ -97,6 +179,34 @@ func ByPrescriptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPrescriptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByStockingLogsCount orders the results by stocking_logs count.
+func ByStockingLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStockingLogsStep(), opts...)
+	}
+}
+
+// ByStockingLogs orders the results by stocking_logs terms.
+func ByStockingLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStockingLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByConsumptionLogsCount orders the results by consumption_logs count.
+func ByConsumptionLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConsumptionLogsStep(), opts...)
+	}
+}
+
+// ByConsumptionLogs orders the results by consumption_logs terms.
+func ByConsumptionLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConsumptionLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMedicinesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -109,5 +219,19 @@ func newPrescriptionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PrescriptionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PrescriptionsTable, PrescriptionsColumn),
+	)
+}
+func newStockingLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StockingLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StockingLogsTable, StockingLogsColumn),
+	)
+}
+func newConsumptionLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConsumptionLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConsumptionLogsTable, ConsumptionLogsColumn),
 	)
 }

@@ -20,8 +20,6 @@ type Tx struct {
 	Medicine *MedicineClient
 	// Prescription is the client for interacting with the Prescription builders.
 	Prescription *PrescriptionClient
-	// Purchase is the client for interacting with the Purchase builders.
-	Purchase *PurchaseClient
 	// StockingLog is the client for interacting with the StockingLog builders.
 	StockingLog *StockingLogClient
 
@@ -159,7 +157,6 @@ func (tx *Tx) init() {
 	tx.ConsumptionLog = NewConsumptionLogClient(tx.config)
 	tx.Medicine = NewMedicineClient(tx.config)
 	tx.Prescription = NewPrescriptionClient(tx.config)
-	tx.Purchase = NewPurchaseClient(tx.config)
 	tx.StockingLog = NewStockingLogClient(tx.config)
 }
 

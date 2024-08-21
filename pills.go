@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"fstiffo/pills/ent"
-	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"log"
@@ -22,9 +21,9 @@ func main() {
 	defer client.Close()
 
 	// Run auto migration tool.
-	// if err := client.Schema.Create(context.Background()); err != nil {
-	// 	log.Fatalf("failed creating schema resources: %v", err)
-	// }
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 
 	// Create a new medicine.
 	// _, err = CreateMedicine(context.Background(), client)
@@ -32,15 +31,15 @@ func main() {
 	// 	log.Fatalf("failed creating medicine: %v", err)
 	// }
 
-	// Query a medicine.
-	ai, error := client.ActiveIngredient.
-		Query().
-		Where(activeingredient.Name("METOPROLOLO")).
-		Only(context.Background())
-	if error != nil {
-		log.Fatalf("failed querying active ingredient: %v", error)
-	}
-	QueryMedicinesIngredient(context.Background(), ai)
+	// // Query a medicine.
+	// ai, error := client.ActiveIngredient.
+	// 	Query().
+	// 	Where(activeingredient.Name("METOPROLOLO")).
+	// 	Only(context.Background())
+	// if error != nil {
+	// 	log.Fatalf("failed querying active ingredient: %v", error)
+	// }
+	// QueryMedicinesIngredient(context.Background(), ai)
 }
 
 // CreateActiveIngredient creates a new active ingredient.
@@ -65,12 +64,10 @@ func CreateMedicine(ctx context.Context, client *ent.Client) (*ent.ActiveIngredi
 		SetName("METOPROLOLO AUROBINDO").
 		SetMah("AUROBINDO PHARMA (ITALIA) S.R.L.").
 		SetDosage(100).
-		SetUnit("mg").
 		SetAtc("C07AB02 - METOPROLOLO").
 		SetPackage("BLISTER PVC/PVDC/AL").
 		SetForm("Compresse rivestite con film").
 		SetBoxSize(30).
-		SetStock(0).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating medicine: %v", err)

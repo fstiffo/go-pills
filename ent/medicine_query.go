@@ -9,7 +9,6 @@ import (
 	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/stockinglog"
 	"math"
 
@@ -26,7 +25,6 @@ type MedicineQuery struct {
 	order                []medicine.OrderOption
 	inters               []Interceptor
 	predicates           []predicate.Medicine
-	withPurchases        *PurchaseQuery
 	withStockingLogs     *StockingLogQuery
 	withActiveIngredient *ActiveIngredientQuery
 	withFKs              bool
@@ -64,28 +62,6 @@ func (mq *MedicineQuery) Unique(unique bool) *MedicineQuery {
 func (mq *MedicineQuery) Order(o ...medicine.OrderOption) *MedicineQuery {
 	mq.order = append(mq.order, o...)
 	return mq
-}
-
-// QueryPurchases chains the current query on the "purchases" edge.
-func (mq *MedicineQuery) QueryPurchases() *PurchaseQuery {
-	query := (&PurchaseClient{config: mq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := mq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := mq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(medicine.Table, medicine.FieldID, selector),
-			sqlgraph.To(purchase.Table, purchase.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, medicine.PurchasesTable, medicine.PurchasesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryStockingLogs chains the current query on the "stocking_logs" edge.
@@ -324,24 +300,12 @@ func (mq *MedicineQuery) Clone() *MedicineQuery {
 		order:                append([]medicine.OrderOption{}, mq.order...),
 		inters:               append([]Interceptor{}, mq.inters...),
 		predicates:           append([]predicate.Medicine{}, mq.predicates...),
-		withPurchases:        mq.withPurchases.Clone(),
 		withStockingLogs:     mq.withStockingLogs.Clone(),
 		withActiveIngredient: mq.withActiveIngredient.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
 	}
-}
-
-// WithPurchases tells the query-builder to eager-load the nodes that are connected to
-// the "purchases" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MedicineQuery) WithPurchases(opts ...func(*PurchaseQuery)) *MedicineQuery {
-	query := (&PurchaseClient{config: mq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	mq.withPurchases = query
-	return mq
 }
 
 // WithStockingLogs tells the query-builder to eager-load the nodes that are connected to
@@ -445,8 +409,7 @@ func (mq *MedicineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Med
 		nodes       = []*Medicine{}
 		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
-		loadedTypes = [3]bool{
-			mq.withPurchases != nil,
+		loadedTypes = [2]bool{
 			mq.withStockingLogs != nil,
 			mq.withActiveIngredient != nil,
 		}
@@ -475,13 +438,6 @@ func (mq *MedicineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Med
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := mq.withPurchases; query != nil {
-		if err := mq.loadPurchases(ctx, query, nodes,
-			func(n *Medicine) { n.Edges.Purchases = []*Purchase{} },
-			func(n *Medicine, e *Purchase) { n.Edges.Purchases = append(n.Edges.Purchases, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := mq.withStockingLogs; query != nil {
 		if err := mq.loadStockingLogs(ctx, query, nodes,
 			func(n *Medicine) { n.Edges.StockingLogs = []*StockingLog{} },
@@ -498,37 +454,6 @@ func (mq *MedicineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Med
 	return nodes, nil
 }
 
-func (mq *MedicineQuery) loadPurchases(ctx context.Context, query *PurchaseQuery, nodes []*Medicine, init func(*Medicine), assign func(*Medicine, *Purchase)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Medicine)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.Purchase(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(medicine.PurchasesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.medicine_purchases
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "medicine_purchases" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "medicine_purchases" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (mq *MedicineQuery) loadStockingLogs(ctx context.Context, query *StockingLogQuery, nodes []*Medicine, init func(*Medicine), assign func(*Medicine, *StockingLog)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Medicine)

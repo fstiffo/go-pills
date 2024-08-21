@@ -3,6 +3,8 @@
 package consumptionlog
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -14,6 +16,8 @@ const (
 	FieldID = "id"
 	// FieldConsumedAt holds the string denoting the consumed_at field in the database.
 	FieldConsumedAt = "consumed_at"
+	// FieldUnits holds the string denoting the units field in the database.
+	FieldUnits = "units"
 	// EdgePrescription holds the string denoting the prescription edge name in mutations.
 	EdgePrescription = "prescription"
 	// Table holds the table name of the consumptionlog in the database.
@@ -31,11 +35,13 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldConsumedAt,
+	FieldUnits,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "consumption_logs"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"active_ingredient_consumption_logs",
 	"prescription_comsumption_logs",
 }
 
@@ -54,6 +60,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultConsumedAt holds the default value on creation for the "consumed_at" field.
+	DefaultConsumedAt func() time.Time
+	// UnitsValidator is a validator for the "units" field. It is called by the builders before save.
+	UnitsValidator func(int) error
+)
+
 // OrderOption defines the ordering options for the ConsumptionLog queries.
 type OrderOption func(*sql.Selector)
 
@@ -65,6 +78,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByConsumedAt orders the results by the consumed_at field.
 func ByConsumedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldConsumedAt, opts...).ToFunc()
+}
+
+// ByUnits orders the results by the units field.
+func ByUnits(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnits, opts...).ToFunc()
 }
 
 // ByPrescriptionField orders the results by prescription field.

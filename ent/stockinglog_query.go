@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
 	"fstiffo/pills/ent/stockinglog"
@@ -19,12 +20,13 @@ import (
 // StockingLogQuery is the builder for querying StockingLog entities.
 type StockingLogQuery struct {
 	config
-	ctx          *QueryContext
-	order        []stockinglog.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.StockingLog
-	withMedicine *MedicineQuery
-	withFKs      bool
+	ctx                  *QueryContext
+	order                []stockinglog.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.StockingLog
+	withMedicine         *MedicineQuery
+	withActiveIngredient *ActiveIngredientQuery
+	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (slq *StockingLogQuery) QueryMedicine() *MedicineQuery {
 			sqlgraph.From(stockinglog.Table, stockinglog.FieldID, selector),
 			sqlgraph.To(medicine.Table, medicine.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, stockinglog.MedicineTable, stockinglog.MedicineColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(slq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryActiveIngredient chains the current query on the "active_ingredient" edge.
+func (slq *StockingLogQuery) QueryActiveIngredient() *ActiveIngredientQuery {
+	query := (&ActiveIngredientClient{config: slq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := slq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := slq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(stockinglog.Table, stockinglog.FieldID, selector),
+			sqlgraph.To(activeingredient.Table, activeingredient.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, stockinglog.ActiveIngredientTable, stockinglog.ActiveIngredientColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(slq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (slq *StockingLogQuery) Clone() *StockingLogQuery {
 		return nil
 	}
 	return &StockingLogQuery{
-		config:       slq.config,
-		ctx:          slq.ctx.Clone(),
-		order:        append([]stockinglog.OrderOption{}, slq.order...),
-		inters:       append([]Interceptor{}, slq.inters...),
-		predicates:   append([]predicate.StockingLog{}, slq.predicates...),
-		withMedicine: slq.withMedicine.Clone(),
+		config:               slq.config,
+		ctx:                  slq.ctx.Clone(),
+		order:                append([]stockinglog.OrderOption{}, slq.order...),
+		inters:               append([]Interceptor{}, slq.inters...),
+		predicates:           append([]predicate.StockingLog{}, slq.predicates...),
+		withMedicine:         slq.withMedicine.Clone(),
+		withActiveIngredient: slq.withActiveIngredient.Clone(),
 		// clone intermediate query.
 		sql:  slq.sql.Clone(),
 		path: slq.path,
@@ -290,6 +315,17 @@ func (slq *StockingLogQuery) WithMedicine(opts ...func(*MedicineQuery)) *Stockin
 		opt(query)
 	}
 	slq.withMedicine = query
+	return slq
+}
+
+// WithActiveIngredient tells the query-builder to eager-load the nodes that are connected to
+// the "active_ingredient" edge. The optional arguments are used to configure the query builder of the edge.
+func (slq *StockingLogQuery) WithActiveIngredient(opts ...func(*ActiveIngredientQuery)) *StockingLogQuery {
+	query := (&ActiveIngredientClient{config: slq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	slq.withActiveIngredient = query
 	return slq
 }
 
@@ -372,11 +408,12 @@ func (slq *StockingLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		nodes       = []*StockingLog{}
 		withFKs     = slq.withFKs
 		_spec       = slq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			slq.withMedicine != nil,
+			slq.withActiveIngredient != nil,
 		}
 	)
-	if slq.withMedicine != nil {
+	if slq.withMedicine != nil || slq.withActiveIngredient != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -403,6 +440,12 @@ func (slq *StockingLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := slq.withMedicine; query != nil {
 		if err := slq.loadMedicine(ctx, query, nodes, nil,
 			func(n *StockingLog, e *Medicine) { n.Edges.Medicine = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := slq.withActiveIngredient; query != nil {
+		if err := slq.loadActiveIngredient(ctx, query, nodes, nil,
+			func(n *StockingLog, e *ActiveIngredient) { n.Edges.ActiveIngredient = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -434,6 +477,38 @@ func (slq *StockingLogQuery) loadMedicine(ctx context.Context, query *MedicineQu
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "medicine_stocking_logs" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (slq *StockingLogQuery) loadActiveIngredient(ctx context.Context, query *ActiveIngredientQuery, nodes []*StockingLog, init func(*StockingLog), assign func(*StockingLog, *ActiveIngredient)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*StockingLog)
+	for i := range nodes {
+		if nodes[i].active_ingredient_stocking_logs == nil {
+			continue
+		}
+		fk := *nodes[i].active_ingredient_stocking_logs
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(activeingredient.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "active_ingredient_stocking_logs" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

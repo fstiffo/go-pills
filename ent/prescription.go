@@ -20,8 +20,6 @@ type Prescription struct {
 	ID int `json:"id,omitempty"`
 	// Dosage holds the value of the "dosage" field.
 	Dosage int `json:"dosage,omitempty"`
-	// Unit holds the value of the "unit" field.
-	Unit string `json:"unit,omitempty"`
 	// DosageFrequency holds the value of the "dosage_frequency" field.
 	DosageFrequency int `json:"dosage_frequency,omitempty"`
 	// StartDate holds the value of the "start_date" field.
@@ -73,8 +71,6 @@ func (*Prescription) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case prescription.FieldID, prescription.FieldDosage, prescription.FieldDosageFrequency:
 			values[i] = new(sql.NullInt64)
-		case prescription.FieldUnit:
-			values[i] = new(sql.NullString)
 		case prescription.FieldStartDate, prescription.FieldEndDate:
 			values[i] = new(sql.NullTime)
 		case prescription.ForeignKeys[0]: // active_ingredient_prescriptions
@@ -105,12 +101,6 @@ func (pr *Prescription) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field dosage", values[i])
 			} else if value.Valid {
 				pr.Dosage = int(value.Int64)
-			}
-		case prescription.FieldUnit:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field unit", values[i])
-			} else if value.Valid {
-				pr.Unit = value.String
 			}
 		case prescription.FieldDosageFrequency:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -185,9 +175,6 @@ func (pr *Prescription) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
 	builder.WriteString("dosage=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Dosage))
-	builder.WriteString(", ")
-	builder.WriteString("unit=")
-	builder.WriteString(pr.Unit)
 	builder.WriteString(", ")
 	builder.WriteString("dosage_frequency=")
 	builder.WriteString(fmt.Sprintf("%v", pr.DosageFrequency))

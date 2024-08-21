@@ -4,7 +4,6 @@ package medicine
 
 import (
 	"fstiffo/pills/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -70,11 +69,6 @@ func Dosage(v float64) predicate.Medicine {
 	return predicate.Medicine(sql.FieldEQ(FieldDosage, v))
 }
 
-// Unit applies equality check predicate on the "unit" field. It's identical to UnitEQ.
-func Unit(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldUnit, v))
-}
-
 // Atc applies equality check predicate on the "atc" field. It's identical to AtcEQ.
 func Atc(v string) predicate.Medicine {
 	return predicate.Medicine(sql.FieldEQ(FieldAtc, v))
@@ -93,16 +87,6 @@ func Form(v string) predicate.Medicine {
 // BoxSize applies equality check predicate on the "box_size" field. It's identical to BoxSizeEQ.
 func BoxSize(v int) predicate.Medicine {
 	return predicate.Medicine(sql.FieldEQ(FieldBoxSize, v))
-}
-
-// Stock applies equality check predicate on the "stock" field. It's identical to StockEQ.
-func Stock(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldStock, v))
-}
-
-// LastStockUpdate applies equality check predicate on the "last_stock_update" field. It's identical to LastStockUpdateEQ.
-func LastStockUpdate(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldLastStockUpdate, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -273,71 +257,6 @@ func DosageLT(v float64) predicate.Medicine {
 // DosageLTE applies the LTE predicate on the "dosage" field.
 func DosageLTE(v float64) predicate.Medicine {
 	return predicate.Medicine(sql.FieldLTE(FieldDosage, v))
-}
-
-// UnitEQ applies the EQ predicate on the "unit" field.
-func UnitEQ(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldUnit, v))
-}
-
-// UnitNEQ applies the NEQ predicate on the "unit" field.
-func UnitNEQ(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNEQ(FieldUnit, v))
-}
-
-// UnitIn applies the In predicate on the "unit" field.
-func UnitIn(vs ...string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldIn(FieldUnit, vs...))
-}
-
-// UnitNotIn applies the NotIn predicate on the "unit" field.
-func UnitNotIn(vs ...string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNotIn(FieldUnit, vs...))
-}
-
-// UnitGT applies the GT predicate on the "unit" field.
-func UnitGT(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGT(FieldUnit, v))
-}
-
-// UnitGTE applies the GTE predicate on the "unit" field.
-func UnitGTE(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGTE(FieldUnit, v))
-}
-
-// UnitLT applies the LT predicate on the "unit" field.
-func UnitLT(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLT(FieldUnit, v))
-}
-
-// UnitLTE applies the LTE predicate on the "unit" field.
-func UnitLTE(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLTE(FieldUnit, v))
-}
-
-// UnitContains applies the Contains predicate on the "unit" field.
-func UnitContains(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldContains(FieldUnit, v))
-}
-
-// UnitHasPrefix applies the HasPrefix predicate on the "unit" field.
-func UnitHasPrefix(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldHasPrefix(FieldUnit, v))
-}
-
-// UnitHasSuffix applies the HasSuffix predicate on the "unit" field.
-func UnitHasSuffix(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldHasSuffix(FieldUnit, v))
-}
-
-// UnitEqualFold applies the EqualFold predicate on the "unit" field.
-func UnitEqualFold(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEqualFold(FieldUnit, v))
-}
-
-// UnitContainsFold applies the ContainsFold predicate on the "unit" field.
-func UnitContainsFold(v string) predicate.Medicine {
-	return predicate.Medicine(sql.FieldContainsFold(FieldUnit, v))
 }
 
 // AtcEQ applies the EQ predicate on the "atc" field.
@@ -573,119 +492,6 @@ func BoxSizeLT(v int) predicate.Medicine {
 // BoxSizeLTE applies the LTE predicate on the "box_size" field.
 func BoxSizeLTE(v int) predicate.Medicine {
 	return predicate.Medicine(sql.FieldLTE(FieldBoxSize, v))
-}
-
-// StockEQ applies the EQ predicate on the "stock" field.
-func StockEQ(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldStock, v))
-}
-
-// StockNEQ applies the NEQ predicate on the "stock" field.
-func StockNEQ(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNEQ(FieldStock, v))
-}
-
-// StockIn applies the In predicate on the "stock" field.
-func StockIn(vs ...float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldIn(FieldStock, vs...))
-}
-
-// StockNotIn applies the NotIn predicate on the "stock" field.
-func StockNotIn(vs ...float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNotIn(FieldStock, vs...))
-}
-
-// StockGT applies the GT predicate on the "stock" field.
-func StockGT(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGT(FieldStock, v))
-}
-
-// StockGTE applies the GTE predicate on the "stock" field.
-func StockGTE(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGTE(FieldStock, v))
-}
-
-// StockLT applies the LT predicate on the "stock" field.
-func StockLT(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLT(FieldStock, v))
-}
-
-// StockLTE applies the LTE predicate on the "stock" field.
-func StockLTE(v float32) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLTE(FieldStock, v))
-}
-
-// StockIsNil applies the IsNil predicate on the "stock" field.
-func StockIsNil() predicate.Medicine {
-	return predicate.Medicine(sql.FieldIsNull(FieldStock))
-}
-
-// StockNotNil applies the NotNil predicate on the "stock" field.
-func StockNotNil() predicate.Medicine {
-	return predicate.Medicine(sql.FieldNotNull(FieldStock))
-}
-
-// LastStockUpdateEQ applies the EQ predicate on the "last_stock_update" field.
-func LastStockUpdateEQ(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldEQ(FieldLastStockUpdate, v))
-}
-
-// LastStockUpdateNEQ applies the NEQ predicate on the "last_stock_update" field.
-func LastStockUpdateNEQ(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNEQ(FieldLastStockUpdate, v))
-}
-
-// LastStockUpdateIn applies the In predicate on the "last_stock_update" field.
-func LastStockUpdateIn(vs ...time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldIn(FieldLastStockUpdate, vs...))
-}
-
-// LastStockUpdateNotIn applies the NotIn predicate on the "last_stock_update" field.
-func LastStockUpdateNotIn(vs ...time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldNotIn(FieldLastStockUpdate, vs...))
-}
-
-// LastStockUpdateGT applies the GT predicate on the "last_stock_update" field.
-func LastStockUpdateGT(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGT(FieldLastStockUpdate, v))
-}
-
-// LastStockUpdateGTE applies the GTE predicate on the "last_stock_update" field.
-func LastStockUpdateGTE(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldGTE(FieldLastStockUpdate, v))
-}
-
-// LastStockUpdateLT applies the LT predicate on the "last_stock_update" field.
-func LastStockUpdateLT(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLT(FieldLastStockUpdate, v))
-}
-
-// LastStockUpdateLTE applies the LTE predicate on the "last_stock_update" field.
-func LastStockUpdateLTE(v time.Time) predicate.Medicine {
-	return predicate.Medicine(sql.FieldLTE(FieldLastStockUpdate, v))
-}
-
-// HasPurchases applies the HasEdge predicate on the "purchases" edge.
-func HasPurchases() predicate.Medicine {
-	return predicate.Medicine(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PurchasesTable, PurchasesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPurchasesWith applies the HasEdge predicate on the "purchases" edge with a given conditions (other predicates).
-func HasPurchasesWith(preds ...predicate.Purchase) predicate.Medicine {
-	return predicate.Medicine(func(s *sql.Selector) {
-		step := newPurchasesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // HasStockingLogs applies the HasEdge predicate on the "stocking_logs" edge.

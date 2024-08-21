@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"fstiffo/pills/ent/activeingredient"
+	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
 	"fstiffo/pills/ent/prescription"
+	"fstiffo/pills/ent/stockinglog"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -43,6 +46,81 @@ func (aiu *ActiveIngredientUpdate) SetNillableName(s *string) *ActiveIngredientU
 	return aiu
 }
 
+// SetStock sets the "stock" field.
+func (aiu *ActiveIngredientUpdate) SetStock(i int) *ActiveIngredientUpdate {
+	aiu.mutation.ResetStock()
+	aiu.mutation.SetStock(i)
+	return aiu
+}
+
+// SetNillableStock sets the "stock" field if the given value is not nil.
+func (aiu *ActiveIngredientUpdate) SetNillableStock(i *int) *ActiveIngredientUpdate {
+	if i != nil {
+		aiu.SetStock(*i)
+	}
+	return aiu
+}
+
+// AddStock adds i to the "stock" field.
+func (aiu *ActiveIngredientUpdate) AddStock(i int) *ActiveIngredientUpdate {
+	aiu.mutation.AddStock(i)
+	return aiu
+}
+
+// ClearStock clears the value of the "stock" field.
+func (aiu *ActiveIngredientUpdate) ClearStock() *ActiveIngredientUpdate {
+	aiu.mutation.ClearStock()
+	return aiu
+}
+
+// SetUnit sets the "unit" field.
+func (aiu *ActiveIngredientUpdate) SetUnit(a activeingredient.Unit) *ActiveIngredientUpdate {
+	aiu.mutation.SetUnit(a)
+	return aiu
+}
+
+// SetNillableUnit sets the "unit" field if the given value is not nil.
+func (aiu *ActiveIngredientUpdate) SetNillableUnit(a *activeingredient.Unit) *ActiveIngredientUpdate {
+	if a != nil {
+		aiu.SetUnit(*a)
+	}
+	return aiu
+}
+
+// ClearUnit clears the value of the "unit" field.
+func (aiu *ActiveIngredientUpdate) ClearUnit() *ActiveIngredientUpdate {
+	aiu.mutation.ClearUnit()
+	return aiu
+}
+
+// SetLastStockedAt sets the "last_stocked_at" field.
+func (aiu *ActiveIngredientUpdate) SetLastStockedAt(t time.Time) *ActiveIngredientUpdate {
+	aiu.mutation.SetLastStockedAt(t)
+	return aiu
+}
+
+// SetNillableLastStockedAt sets the "last_stocked_at" field if the given value is not nil.
+func (aiu *ActiveIngredientUpdate) SetNillableLastStockedAt(t *time.Time) *ActiveIngredientUpdate {
+	if t != nil {
+		aiu.SetLastStockedAt(*t)
+	}
+	return aiu
+}
+
+// SetLastConsumedAt sets the "last_consumed_at" field.
+func (aiu *ActiveIngredientUpdate) SetLastConsumedAt(t time.Time) *ActiveIngredientUpdate {
+	aiu.mutation.SetLastConsumedAt(t)
+	return aiu
+}
+
+// SetNillableLastConsumedAt sets the "last_consumed_at" field if the given value is not nil.
+func (aiu *ActiveIngredientUpdate) SetNillableLastConsumedAt(t *time.Time) *ActiveIngredientUpdate {
+	if t != nil {
+		aiu.SetLastConsumedAt(*t)
+	}
+	return aiu
+}
+
 // AddMedicineIDs adds the "medicines" edge to the Medicine entity by IDs.
 func (aiu *ActiveIngredientUpdate) AddMedicineIDs(ids ...int) *ActiveIngredientUpdate {
 	aiu.mutation.AddMedicineIDs(ids...)
@@ -71,6 +149,36 @@ func (aiu *ActiveIngredientUpdate) AddPrescriptions(p ...*Prescription) *ActiveI
 		ids[i] = p[i].ID
 	}
 	return aiu.AddPrescriptionIDs(ids...)
+}
+
+// AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
+func (aiu *ActiveIngredientUpdate) AddStockingLogIDs(ids ...int) *ActiveIngredientUpdate {
+	aiu.mutation.AddStockingLogIDs(ids...)
+	return aiu
+}
+
+// AddStockingLogs adds the "stocking_logs" edges to the StockingLog entity.
+func (aiu *ActiveIngredientUpdate) AddStockingLogs(s ...*StockingLog) *ActiveIngredientUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return aiu.AddStockingLogIDs(ids...)
+}
+
+// AddConsumptionLogIDs adds the "consumption_logs" edge to the ConsumptionLog entity by IDs.
+func (aiu *ActiveIngredientUpdate) AddConsumptionLogIDs(ids ...int) *ActiveIngredientUpdate {
+	aiu.mutation.AddConsumptionLogIDs(ids...)
+	return aiu
+}
+
+// AddConsumptionLogs adds the "consumption_logs" edges to the ConsumptionLog entity.
+func (aiu *ActiveIngredientUpdate) AddConsumptionLogs(c ...*ConsumptionLog) *ActiveIngredientUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return aiu.AddConsumptionLogIDs(ids...)
 }
 
 // Mutation returns the ActiveIngredientMutation object of the builder.
@@ -120,6 +228,48 @@ func (aiu *ActiveIngredientUpdate) RemovePrescriptions(p ...*Prescription) *Acti
 	return aiu.RemovePrescriptionIDs(ids...)
 }
 
+// ClearStockingLogs clears all "stocking_logs" edges to the StockingLog entity.
+func (aiu *ActiveIngredientUpdate) ClearStockingLogs() *ActiveIngredientUpdate {
+	aiu.mutation.ClearStockingLogs()
+	return aiu
+}
+
+// RemoveStockingLogIDs removes the "stocking_logs" edge to StockingLog entities by IDs.
+func (aiu *ActiveIngredientUpdate) RemoveStockingLogIDs(ids ...int) *ActiveIngredientUpdate {
+	aiu.mutation.RemoveStockingLogIDs(ids...)
+	return aiu
+}
+
+// RemoveStockingLogs removes "stocking_logs" edges to StockingLog entities.
+func (aiu *ActiveIngredientUpdate) RemoveStockingLogs(s ...*StockingLog) *ActiveIngredientUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return aiu.RemoveStockingLogIDs(ids...)
+}
+
+// ClearConsumptionLogs clears all "consumption_logs" edges to the ConsumptionLog entity.
+func (aiu *ActiveIngredientUpdate) ClearConsumptionLogs() *ActiveIngredientUpdate {
+	aiu.mutation.ClearConsumptionLogs()
+	return aiu
+}
+
+// RemoveConsumptionLogIDs removes the "consumption_logs" edge to ConsumptionLog entities by IDs.
+func (aiu *ActiveIngredientUpdate) RemoveConsumptionLogIDs(ids ...int) *ActiveIngredientUpdate {
+	aiu.mutation.RemoveConsumptionLogIDs(ids...)
+	return aiu
+}
+
+// RemoveConsumptionLogs removes "consumption_logs" edges to ConsumptionLog entities.
+func (aiu *ActiveIngredientUpdate) RemoveConsumptionLogs(c ...*ConsumptionLog) *ActiveIngredientUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return aiu.RemoveConsumptionLogIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (aiu *ActiveIngredientUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, aiu.sqlSave, aiu.mutation, aiu.hooks)
@@ -154,6 +304,11 @@ func (aiu *ActiveIngredientUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.name": %w`, err)}
 		}
 	}
+	if v, ok := aiu.mutation.Unit(); ok {
+		if err := activeingredient.UnitValidator(v); err != nil {
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.unit": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -171,6 +326,27 @@ func (aiu *ActiveIngredientUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := aiu.mutation.Name(); ok {
 		_spec.SetField(activeingredient.FieldName, field.TypeString, value)
+	}
+	if value, ok := aiu.mutation.Stock(); ok {
+		_spec.SetField(activeingredient.FieldStock, field.TypeInt, value)
+	}
+	if value, ok := aiu.mutation.AddedStock(); ok {
+		_spec.AddField(activeingredient.FieldStock, field.TypeInt, value)
+	}
+	if aiu.mutation.StockCleared() {
+		_spec.ClearField(activeingredient.FieldStock, field.TypeInt)
+	}
+	if value, ok := aiu.mutation.Unit(); ok {
+		_spec.SetField(activeingredient.FieldUnit, field.TypeEnum, value)
+	}
+	if aiu.mutation.UnitCleared() {
+		_spec.ClearField(activeingredient.FieldUnit, field.TypeEnum)
+	}
+	if value, ok := aiu.mutation.LastStockedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastStockedAt, field.TypeTime, value)
+	}
+	if value, ok := aiu.mutation.LastConsumedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastConsumedAt, field.TypeTime, value)
 	}
 	if aiu.mutation.MedicinesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -262,6 +438,96 @@ func (aiu *ActiveIngredientUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if aiu.mutation.StockingLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiu.mutation.RemovedStockingLogsIDs(); len(nodes) > 0 && !aiu.mutation.StockingLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiu.mutation.StockingLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aiu.mutation.ConsumptionLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiu.mutation.RemovedConsumptionLogsIDs(); len(nodes) > 0 && !aiu.mutation.ConsumptionLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiu.mutation.ConsumptionLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, aiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{activeingredient.Label}
@@ -296,6 +562,81 @@ func (aiuo *ActiveIngredientUpdateOne) SetNillableName(s *string) *ActiveIngredi
 	return aiuo
 }
 
+// SetStock sets the "stock" field.
+func (aiuo *ActiveIngredientUpdateOne) SetStock(i int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.ResetStock()
+	aiuo.mutation.SetStock(i)
+	return aiuo
+}
+
+// SetNillableStock sets the "stock" field if the given value is not nil.
+func (aiuo *ActiveIngredientUpdateOne) SetNillableStock(i *int) *ActiveIngredientUpdateOne {
+	if i != nil {
+		aiuo.SetStock(*i)
+	}
+	return aiuo
+}
+
+// AddStock adds i to the "stock" field.
+func (aiuo *ActiveIngredientUpdateOne) AddStock(i int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.AddStock(i)
+	return aiuo
+}
+
+// ClearStock clears the value of the "stock" field.
+func (aiuo *ActiveIngredientUpdateOne) ClearStock() *ActiveIngredientUpdateOne {
+	aiuo.mutation.ClearStock()
+	return aiuo
+}
+
+// SetUnit sets the "unit" field.
+func (aiuo *ActiveIngredientUpdateOne) SetUnit(a activeingredient.Unit) *ActiveIngredientUpdateOne {
+	aiuo.mutation.SetUnit(a)
+	return aiuo
+}
+
+// SetNillableUnit sets the "unit" field if the given value is not nil.
+func (aiuo *ActiveIngredientUpdateOne) SetNillableUnit(a *activeingredient.Unit) *ActiveIngredientUpdateOne {
+	if a != nil {
+		aiuo.SetUnit(*a)
+	}
+	return aiuo
+}
+
+// ClearUnit clears the value of the "unit" field.
+func (aiuo *ActiveIngredientUpdateOne) ClearUnit() *ActiveIngredientUpdateOne {
+	aiuo.mutation.ClearUnit()
+	return aiuo
+}
+
+// SetLastStockedAt sets the "last_stocked_at" field.
+func (aiuo *ActiveIngredientUpdateOne) SetLastStockedAt(t time.Time) *ActiveIngredientUpdateOne {
+	aiuo.mutation.SetLastStockedAt(t)
+	return aiuo
+}
+
+// SetNillableLastStockedAt sets the "last_stocked_at" field if the given value is not nil.
+func (aiuo *ActiveIngredientUpdateOne) SetNillableLastStockedAt(t *time.Time) *ActiveIngredientUpdateOne {
+	if t != nil {
+		aiuo.SetLastStockedAt(*t)
+	}
+	return aiuo
+}
+
+// SetLastConsumedAt sets the "last_consumed_at" field.
+func (aiuo *ActiveIngredientUpdateOne) SetLastConsumedAt(t time.Time) *ActiveIngredientUpdateOne {
+	aiuo.mutation.SetLastConsumedAt(t)
+	return aiuo
+}
+
+// SetNillableLastConsumedAt sets the "last_consumed_at" field if the given value is not nil.
+func (aiuo *ActiveIngredientUpdateOne) SetNillableLastConsumedAt(t *time.Time) *ActiveIngredientUpdateOne {
+	if t != nil {
+		aiuo.SetLastConsumedAt(*t)
+	}
+	return aiuo
+}
+
 // AddMedicineIDs adds the "medicines" edge to the Medicine entity by IDs.
 func (aiuo *ActiveIngredientUpdateOne) AddMedicineIDs(ids ...int) *ActiveIngredientUpdateOne {
 	aiuo.mutation.AddMedicineIDs(ids...)
@@ -324,6 +665,36 @@ func (aiuo *ActiveIngredientUpdateOne) AddPrescriptions(p ...*Prescription) *Act
 		ids[i] = p[i].ID
 	}
 	return aiuo.AddPrescriptionIDs(ids...)
+}
+
+// AddStockingLogIDs adds the "stocking_logs" edge to the StockingLog entity by IDs.
+func (aiuo *ActiveIngredientUpdateOne) AddStockingLogIDs(ids ...int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.AddStockingLogIDs(ids...)
+	return aiuo
+}
+
+// AddStockingLogs adds the "stocking_logs" edges to the StockingLog entity.
+func (aiuo *ActiveIngredientUpdateOne) AddStockingLogs(s ...*StockingLog) *ActiveIngredientUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return aiuo.AddStockingLogIDs(ids...)
+}
+
+// AddConsumptionLogIDs adds the "consumption_logs" edge to the ConsumptionLog entity by IDs.
+func (aiuo *ActiveIngredientUpdateOne) AddConsumptionLogIDs(ids ...int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.AddConsumptionLogIDs(ids...)
+	return aiuo
+}
+
+// AddConsumptionLogs adds the "consumption_logs" edges to the ConsumptionLog entity.
+func (aiuo *ActiveIngredientUpdateOne) AddConsumptionLogs(c ...*ConsumptionLog) *ActiveIngredientUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return aiuo.AddConsumptionLogIDs(ids...)
 }
 
 // Mutation returns the ActiveIngredientMutation object of the builder.
@@ -373,6 +744,48 @@ func (aiuo *ActiveIngredientUpdateOne) RemovePrescriptions(p ...*Prescription) *
 	return aiuo.RemovePrescriptionIDs(ids...)
 }
 
+// ClearStockingLogs clears all "stocking_logs" edges to the StockingLog entity.
+func (aiuo *ActiveIngredientUpdateOne) ClearStockingLogs() *ActiveIngredientUpdateOne {
+	aiuo.mutation.ClearStockingLogs()
+	return aiuo
+}
+
+// RemoveStockingLogIDs removes the "stocking_logs" edge to StockingLog entities by IDs.
+func (aiuo *ActiveIngredientUpdateOne) RemoveStockingLogIDs(ids ...int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.RemoveStockingLogIDs(ids...)
+	return aiuo
+}
+
+// RemoveStockingLogs removes "stocking_logs" edges to StockingLog entities.
+func (aiuo *ActiveIngredientUpdateOne) RemoveStockingLogs(s ...*StockingLog) *ActiveIngredientUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return aiuo.RemoveStockingLogIDs(ids...)
+}
+
+// ClearConsumptionLogs clears all "consumption_logs" edges to the ConsumptionLog entity.
+func (aiuo *ActiveIngredientUpdateOne) ClearConsumptionLogs() *ActiveIngredientUpdateOne {
+	aiuo.mutation.ClearConsumptionLogs()
+	return aiuo
+}
+
+// RemoveConsumptionLogIDs removes the "consumption_logs" edge to ConsumptionLog entities by IDs.
+func (aiuo *ActiveIngredientUpdateOne) RemoveConsumptionLogIDs(ids ...int) *ActiveIngredientUpdateOne {
+	aiuo.mutation.RemoveConsumptionLogIDs(ids...)
+	return aiuo
+}
+
+// RemoveConsumptionLogs removes "consumption_logs" edges to ConsumptionLog entities.
+func (aiuo *ActiveIngredientUpdateOne) RemoveConsumptionLogs(c ...*ConsumptionLog) *ActiveIngredientUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return aiuo.RemoveConsumptionLogIDs(ids...)
+}
+
 // Where appends a list predicates to the ActiveIngredientUpdate builder.
 func (aiuo *ActiveIngredientUpdateOne) Where(ps ...predicate.ActiveIngredient) *ActiveIngredientUpdateOne {
 	aiuo.mutation.Where(ps...)
@@ -420,6 +833,11 @@ func (aiuo *ActiveIngredientUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.name": %w`, err)}
 		}
 	}
+	if v, ok := aiuo.mutation.Unit(); ok {
+		if err := activeingredient.UnitValidator(v); err != nil {
+			return &ValidationError{Name: "unit", err: fmt.Errorf(`ent: validator failed for field "ActiveIngredient.unit": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -454,6 +872,27 @@ func (aiuo *ActiveIngredientUpdateOne) sqlSave(ctx context.Context) (_node *Acti
 	}
 	if value, ok := aiuo.mutation.Name(); ok {
 		_spec.SetField(activeingredient.FieldName, field.TypeString, value)
+	}
+	if value, ok := aiuo.mutation.Stock(); ok {
+		_spec.SetField(activeingredient.FieldStock, field.TypeInt, value)
+	}
+	if value, ok := aiuo.mutation.AddedStock(); ok {
+		_spec.AddField(activeingredient.FieldStock, field.TypeInt, value)
+	}
+	if aiuo.mutation.StockCleared() {
+		_spec.ClearField(activeingredient.FieldStock, field.TypeInt)
+	}
+	if value, ok := aiuo.mutation.Unit(); ok {
+		_spec.SetField(activeingredient.FieldUnit, field.TypeEnum, value)
+	}
+	if aiuo.mutation.UnitCleared() {
+		_spec.ClearField(activeingredient.FieldUnit, field.TypeEnum)
+	}
+	if value, ok := aiuo.mutation.LastStockedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastStockedAt, field.TypeTime, value)
+	}
+	if value, ok := aiuo.mutation.LastConsumedAt(); ok {
+		_spec.SetField(activeingredient.FieldLastConsumedAt, field.TypeTime, value)
 	}
 	if aiuo.mutation.MedicinesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -538,6 +977,96 @@ func (aiuo *ActiveIngredientUpdateOne) sqlSave(ctx context.Context) (_node *Acti
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(prescription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aiuo.mutation.StockingLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiuo.mutation.RemovedStockingLogsIDs(); len(nodes) > 0 && !aiuo.mutation.StockingLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiuo.mutation.StockingLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.StockingLogsTable,
+			Columns: []string{activeingredient.StockingLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stockinglog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if aiuo.mutation.ConsumptionLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiuo.mutation.RemovedConsumptionLogsIDs(); len(nodes) > 0 && !aiuo.mutation.ConsumptionLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := aiuo.mutation.ConsumptionLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   activeingredient.ConsumptionLogsTable,
+			Columns: []string{activeingredient.ConsumptionLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(consumptionlog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

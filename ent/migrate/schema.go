@@ -12,6 +12,10 @@ var (
 	ActiveIngredientsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "stock", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "unit", Type: field.TypeEnum, Nullable: true, Enums: []string{"mg", "g", "ml", "u"}, Default: "mg"},
+		{Name: "last_stocked_at", Type: field.TypeTime},
+		{Name: "last_consumed_at", Type: field.TypeTime},
 	}
 	// ActiveIngredientsTable holds the schema information for the "active_ingredients" table.
 	ActiveIngredientsTable = &schema.Table{
@@ -22,7 +26,9 @@ var (
 	// ConsumptionLogsColumns holds the columns for the "consumption_logs" table.
 	ConsumptionLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "consumed_at", Type: field.TypeTime},
+		{Name: "consumed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "units", Type: field.TypeInt},
+		{Name: "active_ingredient_consumption_logs", Type: field.TypeInt, Nullable: true},
 		{Name: "prescription_comsumption_logs", Type: field.TypeInt, Nullable: true},
 	}
 	// ConsumptionLogsTable holds the schema information for the "consumption_logs" table.
@@ -32,8 +38,14 @@ var (
 		PrimaryKey: []*schema.Column{ConsumptionLogsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "consumption_logs_active_ingredients_consumption_logs",
+				Columns:    []*schema.Column{ConsumptionLogsColumns[3]},
+				RefColumns: []*schema.Column{ActiveIngredientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "consumption_logs_prescriptions_comsumption_logs",
-				Columns:    []*schema.Column{ConsumptionLogsColumns[2]},
+				Columns:    []*schema.Column{ConsumptionLogsColumns[4]},
 				RefColumns: []*schema.Column{PrescriptionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -45,13 +57,10 @@ var (
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "mah", Type: field.TypeString},
 		{Name: "dosage", Type: field.TypeFloat64},
-		{Name: "unit", Type: field.TypeString},
 		{Name: "atc", Type: field.TypeString, Unique: true},
 		{Name: "package", Type: field.TypeString},
 		{Name: "form", Type: field.TypeString},
 		{Name: "box_size", Type: field.TypeInt},
-		{Name: "stock", Type: field.TypeFloat32, Nullable: true, Default: 0},
-		{Name: "last_stock_update", Type: field.TypeTime},
 		{Name: "active_ingredient_medicines", Type: field.TypeInt, Nullable: true},
 	}
 	// MedicinesTable holds the schema information for the "medicines" table.
@@ -62,7 +71,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "medicines_active_ingredients_medicines",
-				Columns:    []*schema.Column{MedicinesColumns[11]},
+				Columns:    []*schema.Column{MedicinesColumns[8]},
 				RefColumns: []*schema.Column{ActiveIngredientsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -72,7 +81,6 @@ var (
 	PrescriptionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "dosage", Type: field.TypeInt},
-		{Name: "unit", Type: field.TypeString},
 		{Name: "dosage_frequency", Type: field.TypeInt, Nullable: true, Default: 1},
 		{Name: "start_date", Type: field.TypeTime, Nullable: true},
 		{Name: "end_date", Type: field.TypeTime, Nullable: true},
@@ -86,29 +94,8 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prescriptions_active_ingredients_prescriptions",
-				Columns:    []*schema.Column{PrescriptionsColumns[6]},
+				Columns:    []*schema.Column{PrescriptionsColumns[5]},
 				RefColumns: []*schema.Column{ActiveIngredientsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// PurchasesColumns holds the columns for the "purchases" table.
-	PurchasesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "puchased_at", Type: field.TypeTime},
-		{Name: "quantity", Type: field.TypeInt},
-		{Name: "medicine_purchases", Type: field.TypeInt, Nullable: true},
-	}
-	// PurchasesTable holds the schema information for the "purchases" table.
-	PurchasesTable = &schema.Table{
-		Name:       "purchases",
-		Columns:    PurchasesColumns,
-		PrimaryKey: []*schema.Column{PurchasesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "purchases_medicines_purchases",
-				Columns:    []*schema.Column{PurchasesColumns[3]},
-				RefColumns: []*schema.Column{MedicinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -116,8 +103,10 @@ var (
 	// StockingLogsColumns holds the columns for the "stocking_logs" table.
 	StockingLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "stocked_at", Type: field.TypeTime},
-		{Name: "quantity", Type: field.TypeInt},
+		{Name: "stocked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "boxes", Type: field.TypeInt, Nullable: true, Default: 1},
+		{Name: "units", Type: field.TypeInt},
+		{Name: "active_ingredient_stocking_logs", Type: field.TypeInt, Nullable: true},
 		{Name: "medicine_stocking_logs", Type: field.TypeInt, Nullable: true},
 	}
 	// StockingLogsTable holds the schema information for the "stocking_logs" table.
@@ -127,8 +116,14 @@ var (
 		PrimaryKey: []*schema.Column{StockingLogsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "stocking_logs_active_ingredients_stocking_logs",
+				Columns:    []*schema.Column{StockingLogsColumns[4]},
+				RefColumns: []*schema.Column{ActiveIngredientsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "stocking_logs_medicines_stocking_logs",
-				Columns:    []*schema.Column{StockingLogsColumns[3]},
+				Columns:    []*schema.Column{StockingLogsColumns[5]},
 				RefColumns: []*schema.Column{MedicinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -140,15 +135,15 @@ var (
 		ConsumptionLogsTable,
 		MedicinesTable,
 		PrescriptionsTable,
-		PurchasesTable,
 		StockingLogsTable,
 	}
 )
 
 func init() {
-	ConsumptionLogsTable.ForeignKeys[0].RefTable = PrescriptionsTable
+	ConsumptionLogsTable.ForeignKeys[0].RefTable = ActiveIngredientsTable
+	ConsumptionLogsTable.ForeignKeys[1].RefTable = PrescriptionsTable
 	MedicinesTable.ForeignKeys[0].RefTable = ActiveIngredientsTable
 	PrescriptionsTable.ForeignKeys[0].RefTable = ActiveIngredientsTable
-	PurchasesTable.ForeignKeys[0].RefTable = MedicinesTable
-	StockingLogsTable.ForeignKeys[0].RefTable = MedicinesTable
+	StockingLogsTable.ForeignKeys[0].RefTable = ActiveIngredientsTable
+	StockingLogsTable.ForeignKeys[1].RefTable = MedicinesTable
 }

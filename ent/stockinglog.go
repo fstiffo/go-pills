@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"fstiffo/pills/ent/activeingredient"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/stockinglog"
 	"strings"
@@ -20,22 +21,27 @@ type StockingLog struct {
 	ID int `json:"id,omitempty"`
 	// StockedAt holds the value of the "stocked_at" field.
 	StockedAt time.Time `json:"stocked_at,omitempty"`
-	// Quantity holds the value of the "quantity" field.
-	Quantity int `json:"quantity,omitempty"`
+	// Boxes holds the value of the "boxes" field.
+	Boxes int `json:"boxes,omitempty"`
+	// Units holds the value of the "units" field.
+	Units int `json:"units,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the StockingLogQuery when eager-loading is set.
-	Edges                  StockingLogEdges `json:"edges"`
-	medicine_stocking_logs *int
-	selectValues           sql.SelectValues
+	Edges                           StockingLogEdges `json:"edges"`
+	active_ingredient_stocking_logs *int
+	medicine_stocking_logs          *int
+	selectValues                    sql.SelectValues
 }
 
 // StockingLogEdges holds the relations/edges for other nodes in the graph.
 type StockingLogEdges struct {
 	// Medicine holds the value of the medicine edge.
 	Medicine *Medicine `json:"medicine,omitempty"`
+	// ActiveIngredient holds the value of the active_ingredient edge.
+	ActiveIngredient *ActiveIngredient `json:"active_ingredient,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // MedicineOrErr returns the Medicine value or an error if the edge
@@ -49,16 +55,29 @@ func (e StockingLogEdges) MedicineOrErr() (*Medicine, error) {
 	return nil, &NotLoadedError{edge: "medicine"}
 }
 
+// ActiveIngredientOrErr returns the ActiveIngredient value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e StockingLogEdges) ActiveIngredientOrErr() (*ActiveIngredient, error) {
+	if e.ActiveIngredient != nil {
+		return e.ActiveIngredient, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: activeingredient.Label}
+	}
+	return nil, &NotLoadedError{edge: "active_ingredient"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*StockingLog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case stockinglog.FieldID, stockinglog.FieldQuantity:
+		case stockinglog.FieldID, stockinglog.FieldBoxes, stockinglog.FieldUnits:
 			values[i] = new(sql.NullInt64)
 		case stockinglog.FieldStockedAt:
 			values[i] = new(sql.NullTime)
-		case stockinglog.ForeignKeys[0]: // medicine_stocking_logs
+		case stockinglog.ForeignKeys[0]: // active_ingredient_stocking_logs
+			values[i] = new(sql.NullInt64)
+		case stockinglog.ForeignKeys[1]: // medicine_stocking_logs
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -87,13 +106,26 @@ func (sl *StockingLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sl.StockedAt = value.Time
 			}
-		case stockinglog.FieldQuantity:
+		case stockinglog.FieldBoxes:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field quantity", values[i])
+				return fmt.Errorf("unexpected type %T for field boxes", values[i])
 			} else if value.Valid {
-				sl.Quantity = int(value.Int64)
+				sl.Boxes = int(value.Int64)
+			}
+		case stockinglog.FieldUnits:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field units", values[i])
+			} else if value.Valid {
+				sl.Units = int(value.Int64)
 			}
 		case stockinglog.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field active_ingredient_stocking_logs", value)
+			} else if value.Valid {
+				sl.active_ingredient_stocking_logs = new(int)
+				*sl.active_ingredient_stocking_logs = int(value.Int64)
+			}
+		case stockinglog.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field medicine_stocking_logs", value)
 			} else if value.Valid {
@@ -116,6 +148,11 @@ func (sl *StockingLog) Value(name string) (ent.Value, error) {
 // QueryMedicine queries the "medicine" edge of the StockingLog entity.
 func (sl *StockingLog) QueryMedicine() *MedicineQuery {
 	return NewStockingLogClient(sl.config).QueryMedicine(sl)
+}
+
+// QueryActiveIngredient queries the "active_ingredient" edge of the StockingLog entity.
+func (sl *StockingLog) QueryActiveIngredient() *ActiveIngredientQuery {
+	return NewStockingLogClient(sl.config).QueryActiveIngredient(sl)
 }
 
 // Update returns a builder for updating this StockingLog.
@@ -144,8 +181,11 @@ func (sl *StockingLog) String() string {
 	builder.WriteString("stocked_at=")
 	builder.WriteString(sl.StockedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("quantity=")
-	builder.WriteString(fmt.Sprintf("%v", sl.Quantity))
+	builder.WriteString("boxes=")
+	builder.WriteString(fmt.Sprintf("%v", sl.Boxes))
+	builder.WriteString(", ")
+	builder.WriteString("units=")
+	builder.WriteString(fmt.Sprintf("%v", sl.Units))
 	builder.WriteByte(')')
 	return builder.String()
 }

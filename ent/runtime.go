@@ -4,9 +4,9 @@ package ent
 
 import (
 	"fstiffo/pills/ent/activeingredient"
+	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/prescription"
-	"fstiffo/pills/ent/purchase"
 	"fstiffo/pills/ent/schema"
 	"fstiffo/pills/ent/stockinglog"
 	"time"
@@ -22,6 +22,20 @@ func init() {
 	activeingredientDescName := activeingredientFields[0].Descriptor()
 	// activeingredient.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	activeingredient.NameValidator = activeingredientDescName.Validators[0].(func(string) error)
+	// activeingredientDescStock is the schema descriptor for stock field.
+	activeingredientDescStock := activeingredientFields[1].Descriptor()
+	// activeingredient.DefaultStock holds the default value on creation for the stock field.
+	activeingredient.DefaultStock = activeingredientDescStock.Default.(int)
+	consumptionlogFields := schema.ConsumptionLog{}.Fields()
+	_ = consumptionlogFields
+	// consumptionlogDescConsumedAt is the schema descriptor for consumed_at field.
+	consumptionlogDescConsumedAt := consumptionlogFields[0].Descriptor()
+	// consumptionlog.DefaultConsumedAt holds the default value on creation for the consumed_at field.
+	consumptionlog.DefaultConsumedAt = consumptionlogDescConsumedAt.Default.(func() time.Time)
+	// consumptionlogDescUnits is the schema descriptor for units field.
+	consumptionlogDescUnits := consumptionlogFields[1].Descriptor()
+	// consumptionlog.UnitsValidator is a validator for the "units" field. It is called by the builders before save.
+	consumptionlog.UnitsValidator = consumptionlogDescUnits.Validators[0].(func(int) error)
 	medicineFields := schema.Medicine{}.Fields()
 	_ = medicineFields
 	// medicineDescName is the schema descriptor for name field.
@@ -36,12 +50,8 @@ func init() {
 	medicineDescDosage := medicineFields[2].Descriptor()
 	// medicine.DosageValidator is a validator for the "dosage" field. It is called by the builders before save.
 	medicine.DosageValidator = medicineDescDosage.Validators[0].(func(float64) error)
-	// medicineDescUnit is the schema descriptor for unit field.
-	medicineDescUnit := medicineFields[3].Descriptor()
-	// medicine.UnitValidator is a validator for the "unit" field. It is called by the builders before save.
-	medicine.UnitValidator = medicineDescUnit.Validators[0].(func(string) error)
 	// medicineDescAtc is the schema descriptor for atc field.
-	medicineDescAtc := medicineFields[4].Descriptor()
+	medicineDescAtc := medicineFields[3].Descriptor()
 	// medicine.AtcValidator is a validator for the "atc" field. It is called by the builders before save.
 	medicine.AtcValidator = func() func(string) error {
 		validators := medicineDescAtc.Validators
@@ -60,43 +70,39 @@ func init() {
 		}
 	}()
 	// medicineDescBoxSize is the schema descriptor for box_size field.
-	medicineDescBoxSize := medicineFields[7].Descriptor()
+	medicineDescBoxSize := medicineFields[6].Descriptor()
 	// medicine.BoxSizeValidator is a validator for the "box_size" field. It is called by the builders before save.
 	medicine.BoxSizeValidator = medicineDescBoxSize.Validators[0].(func(int) error)
-	// medicineDescStock is the schema descriptor for stock field.
-	medicineDescStock := medicineFields[8].Descriptor()
-	// medicine.DefaultStock holds the default value on creation for the stock field.
-	medicine.DefaultStock = medicineDescStock.Default.(float32)
 	prescriptionFields := schema.Prescription{}.Fields()
 	_ = prescriptionFields
 	// prescriptionDescDosage is the schema descriptor for dosage field.
 	prescriptionDescDosage := prescriptionFields[0].Descriptor()
 	// prescription.DosageValidator is a validator for the "dosage" field. It is called by the builders before save.
 	prescription.DosageValidator = prescriptionDescDosage.Validators[0].(func(int) error)
-	// prescriptionDescUnit is the schema descriptor for unit field.
-	prescriptionDescUnit := prescriptionFields[1].Descriptor()
-	// prescription.UnitValidator is a validator for the "unit" field. It is called by the builders before save.
-	prescription.UnitValidator = prescriptionDescUnit.Validators[0].(func(string) error)
 	// prescriptionDescDosageFrequency is the schema descriptor for dosage_frequency field.
-	prescriptionDescDosageFrequency := prescriptionFields[2].Descriptor()
+	prescriptionDescDosageFrequency := prescriptionFields[1].Descriptor()
 	// prescription.DefaultDosageFrequency holds the default value on creation for the dosage_frequency field.
 	prescription.DefaultDosageFrequency = prescriptionDescDosageFrequency.Default.(int)
 	// prescription.DosageFrequencyValidator is a validator for the "dosage_frequency" field. It is called by the builders before save.
 	prescription.DosageFrequencyValidator = prescriptionDescDosageFrequency.Validators[0].(func(int) error)
 	// prescriptionDescStartDate is the schema descriptor for start_date field.
-	prescriptionDescStartDate := prescriptionFields[3].Descriptor()
+	prescriptionDescStartDate := prescriptionFields[2].Descriptor()
 	// prescription.DefaultStartDate holds the default value on creation for the start_date field.
 	prescription.DefaultStartDate = prescriptionDescStartDate.Default.(func() time.Time)
-	purchaseFields := schema.Purchase{}.Fields()
-	_ = purchaseFields
-	// purchaseDescQuantity is the schema descriptor for quantity field.
-	purchaseDescQuantity := purchaseFields[1].Descriptor()
-	// purchase.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
-	purchase.QuantityValidator = purchaseDescQuantity.Validators[0].(func(int) error)
 	stockinglogFields := schema.StockingLog{}.Fields()
 	_ = stockinglogFields
-	// stockinglogDescQuantity is the schema descriptor for quantity field.
-	stockinglogDescQuantity := stockinglogFields[1].Descriptor()
-	// stockinglog.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
-	stockinglog.QuantityValidator = stockinglogDescQuantity.Validators[0].(func(int) error)
+	// stockinglogDescStockedAt is the schema descriptor for stocked_at field.
+	stockinglogDescStockedAt := stockinglogFields[0].Descriptor()
+	// stockinglog.DefaultStockedAt holds the default value on creation for the stocked_at field.
+	stockinglog.DefaultStockedAt = stockinglogDescStockedAt.Default.(func() time.Time)
+	// stockinglogDescBoxes is the schema descriptor for boxes field.
+	stockinglogDescBoxes := stockinglogFields[1].Descriptor()
+	// stockinglog.DefaultBoxes holds the default value on creation for the boxes field.
+	stockinglog.DefaultBoxes = stockinglogDescBoxes.Default.(int)
+	// stockinglog.BoxesValidator is a validator for the "boxes" field. It is called by the builders before save.
+	stockinglog.BoxesValidator = stockinglogDescBoxes.Validators[0].(func(int) error)
+	// stockinglogDescUnits is the schema descriptor for units field.
+	stockinglogDescUnits := stockinglogFields[2].Descriptor()
+	// stockinglog.UnitsValidator is a validator for the "units" field. It is called by the builders before save.
+	stockinglog.UnitsValidator = stockinglogDescUnits.Validators[0].(func(int) error)
 }

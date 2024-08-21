@@ -60,11 +60,6 @@ func Dosage(v int) predicate.Prescription {
 	return predicate.Prescription(sql.FieldEQ(FieldDosage, v))
 }
 
-// Unit applies equality check predicate on the "unit" field. It's identical to UnitEQ.
-func Unit(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldEQ(FieldUnit, v))
-}
-
 // DosageFrequency applies equality check predicate on the "dosage_frequency" field. It's identical to DosageFrequencyEQ.
 func DosageFrequency(v int) predicate.Prescription {
 	return predicate.Prescription(sql.FieldEQ(FieldDosageFrequency, v))
@@ -118,71 +113,6 @@ func DosageLT(v int) predicate.Prescription {
 // DosageLTE applies the LTE predicate on the "dosage" field.
 func DosageLTE(v int) predicate.Prescription {
 	return predicate.Prescription(sql.FieldLTE(FieldDosage, v))
-}
-
-// UnitEQ applies the EQ predicate on the "unit" field.
-func UnitEQ(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldEQ(FieldUnit, v))
-}
-
-// UnitNEQ applies the NEQ predicate on the "unit" field.
-func UnitNEQ(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldNEQ(FieldUnit, v))
-}
-
-// UnitIn applies the In predicate on the "unit" field.
-func UnitIn(vs ...string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldIn(FieldUnit, vs...))
-}
-
-// UnitNotIn applies the NotIn predicate on the "unit" field.
-func UnitNotIn(vs ...string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldNotIn(FieldUnit, vs...))
-}
-
-// UnitGT applies the GT predicate on the "unit" field.
-func UnitGT(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldGT(FieldUnit, v))
-}
-
-// UnitGTE applies the GTE predicate on the "unit" field.
-func UnitGTE(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldGTE(FieldUnit, v))
-}
-
-// UnitLT applies the LT predicate on the "unit" field.
-func UnitLT(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldLT(FieldUnit, v))
-}
-
-// UnitLTE applies the LTE predicate on the "unit" field.
-func UnitLTE(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldLTE(FieldUnit, v))
-}
-
-// UnitContains applies the Contains predicate on the "unit" field.
-func UnitContains(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldContains(FieldUnit, v))
-}
-
-// UnitHasPrefix applies the HasPrefix predicate on the "unit" field.
-func UnitHasPrefix(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldHasPrefix(FieldUnit, v))
-}
-
-// UnitHasSuffix applies the HasSuffix predicate on the "unit" field.
-func UnitHasSuffix(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldHasSuffix(FieldUnit, v))
-}
-
-// UnitEqualFold applies the EqualFold predicate on the "unit" field.
-func UnitEqualFold(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldEqualFold(FieldUnit, v))
-}
-
-// UnitContainsFold applies the ContainsFold predicate on the "unit" field.
-func UnitContainsFold(v string) predicate.Prescription {
-	return predicate.Prescription(sql.FieldContainsFold(FieldUnit, v))
 }
 
 // DosageFrequencyEQ applies the EQ predicate on the "dosage_frequency" field.

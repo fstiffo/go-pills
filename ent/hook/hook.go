@@ -56,18 +56,6 @@ func (f PrescriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PrescriptionMutation", m)
 }
 
-// The PurchaseFunc type is an adapter to allow the use of ordinary
-// function as Purchase mutator.
-type PurchaseFunc func(context.Context, *ent.PurchaseMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PurchaseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.PurchaseMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PurchaseMutation", m)
-}
-
 // The StockingLogFunc type is an adapter to allow the use of ordinary
 // function as StockingLog mutator.
 type StockingLogFunc func(context.Context, *ent.StockingLogMutation) (ent.Value, error)

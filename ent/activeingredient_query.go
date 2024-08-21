@@ -7,9 +7,11 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"fstiffo/pills/ent/activeingredient"
+	"fstiffo/pills/ent/consumptionlog"
 	"fstiffo/pills/ent/medicine"
 	"fstiffo/pills/ent/predicate"
 	"fstiffo/pills/ent/prescription"
+	"fstiffo/pills/ent/stockinglog"
 	"math"
 
 	"entgo.io/ent"
@@ -21,12 +23,14 @@ import (
 // ActiveIngredientQuery is the builder for querying ActiveIngredient entities.
 type ActiveIngredientQuery struct {
 	config
-	ctx               *QueryContext
-	order             []activeingredient.OrderOption
-	inters            []Interceptor
-	predicates        []predicate.ActiveIngredient
-	withMedicines     *MedicineQuery
-	withPrescriptions *PrescriptionQuery
+	ctx                 *QueryContext
+	order               []activeingredient.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.ActiveIngredient
+	withMedicines       *MedicineQuery
+	withPrescriptions   *PrescriptionQuery
+	withStockingLogs    *StockingLogQuery
+	withConsumptionLogs *ConsumptionLogQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +104,50 @@ func (aiq *ActiveIngredientQuery) QueryPrescriptions() *PrescriptionQuery {
 			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, selector),
 			sqlgraph.To(prescription.Table, prescription.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.PrescriptionsTable, activeingredient.PrescriptionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aiq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStockingLogs chains the current query on the "stocking_logs" edge.
+func (aiq *ActiveIngredientQuery) QueryStockingLogs() *StockingLogQuery {
+	query := (&StockingLogClient{config: aiq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aiq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, selector),
+			sqlgraph.To(stockinglog.Table, stockinglog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.StockingLogsTable, activeingredient.StockingLogsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aiq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConsumptionLogs chains the current query on the "consumption_logs" edge.
+func (aiq *ActiveIngredientQuery) QueryConsumptionLogs() *ConsumptionLogQuery {
+	query := (&ConsumptionLogClient{config: aiq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aiq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(activeingredient.Table, activeingredient.FieldID, selector),
+			sqlgraph.To(consumptionlog.Table, consumptionlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, activeingredient.ConsumptionLogsTable, activeingredient.ConsumptionLogsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aiq.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +342,15 @@ func (aiq *ActiveIngredientQuery) Clone() *ActiveIngredientQuery {
 		return nil
 	}
 	return &ActiveIngredientQuery{
-		config:            aiq.config,
-		ctx:               aiq.ctx.Clone(),
-		order:             append([]activeingredient.OrderOption{}, aiq.order...),
-		inters:            append([]Interceptor{}, aiq.inters...),
-		predicates:        append([]predicate.ActiveIngredient{}, aiq.predicates...),
-		withMedicines:     aiq.withMedicines.Clone(),
-		withPrescriptions: aiq.withPrescriptions.Clone(),
+		config:              aiq.config,
+		ctx:                 aiq.ctx.Clone(),
+		order:               append([]activeingredient.OrderOption{}, aiq.order...),
+		inters:              append([]Interceptor{}, aiq.inters...),
+		predicates:          append([]predicate.ActiveIngredient{}, aiq.predicates...),
+		withMedicines:       aiq.withMedicines.Clone(),
+		withPrescriptions:   aiq.withPrescriptions.Clone(),
+		withStockingLogs:    aiq.withStockingLogs.Clone(),
+		withConsumptionLogs: aiq.withConsumptionLogs.Clone(),
 		// clone intermediate query.
 		sql:  aiq.sql.Clone(),
 		path: aiq.path,
@@ -326,6 +376,28 @@ func (aiq *ActiveIngredientQuery) WithPrescriptions(opts ...func(*PrescriptionQu
 		opt(query)
 	}
 	aiq.withPrescriptions = query
+	return aiq
+}
+
+// WithStockingLogs tells the query-builder to eager-load the nodes that are connected to
+// the "stocking_logs" edge. The optional arguments are used to configure the query builder of the edge.
+func (aiq *ActiveIngredientQuery) WithStockingLogs(opts ...func(*StockingLogQuery)) *ActiveIngredientQuery {
+	query := (&StockingLogClient{config: aiq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aiq.withStockingLogs = query
+	return aiq
+}
+
+// WithConsumptionLogs tells the query-builder to eager-load the nodes that are connected to
+// the "consumption_logs" edge. The optional arguments are used to configure the query builder of the edge.
+func (aiq *ActiveIngredientQuery) WithConsumptionLogs(opts ...func(*ConsumptionLogQuery)) *ActiveIngredientQuery {
+	query := (&ConsumptionLogClient{config: aiq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aiq.withConsumptionLogs = query
 	return aiq
 }
 
@@ -407,9 +479,11 @@ func (aiq *ActiveIngredientQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*ActiveIngredient{}
 		_spec       = aiq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			aiq.withMedicines != nil,
 			aiq.withPrescriptions != nil,
+			aiq.withStockingLogs != nil,
+			aiq.withConsumptionLogs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +515,22 @@ func (aiq *ActiveIngredientQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		if err := aiq.loadPrescriptions(ctx, query, nodes,
 			func(n *ActiveIngredient) { n.Edges.Prescriptions = []*Prescription{} },
 			func(n *ActiveIngredient, e *Prescription) { n.Edges.Prescriptions = append(n.Edges.Prescriptions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aiq.withStockingLogs; query != nil {
+		if err := aiq.loadStockingLogs(ctx, query, nodes,
+			func(n *ActiveIngredient) { n.Edges.StockingLogs = []*StockingLog{} },
+			func(n *ActiveIngredient, e *StockingLog) { n.Edges.StockingLogs = append(n.Edges.StockingLogs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aiq.withConsumptionLogs; query != nil {
+		if err := aiq.loadConsumptionLogs(ctx, query, nodes,
+			func(n *ActiveIngredient) { n.Edges.ConsumptionLogs = []*ConsumptionLog{} },
+			func(n *ActiveIngredient, e *ConsumptionLog) {
+				n.Edges.ConsumptionLogs = append(n.Edges.ConsumptionLogs, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -504,6 +594,68 @@ func (aiq *ActiveIngredientQuery) loadPrescriptions(ctx context.Context, query *
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "active_ingredient_prescriptions" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (aiq *ActiveIngredientQuery) loadStockingLogs(ctx context.Context, query *StockingLogQuery, nodes []*ActiveIngredient, init func(*ActiveIngredient), assign func(*ActiveIngredient, *StockingLog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ActiveIngredient)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.StockingLog(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(activeingredient.StockingLogsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.active_ingredient_stocking_logs
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "active_ingredient_stocking_logs" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "active_ingredient_stocking_logs" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (aiq *ActiveIngredientQuery) loadConsumptionLogs(ctx context.Context, query *ConsumptionLogQuery, nodes []*ActiveIngredient, init func(*ActiveIngredient), assign func(*ActiveIngredient, *ConsumptionLog)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ActiveIngredient)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ConsumptionLog(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(activeingredient.ConsumptionLogsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.active_ingredient_consumption_logs
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "active_ingredient_consumption_logs" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "active_ingredient_consumption_logs" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

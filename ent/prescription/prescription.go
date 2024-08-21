@@ -16,8 +16,6 @@ const (
 	FieldID = "id"
 	// FieldDosage holds the string denoting the dosage field in the database.
 	FieldDosage = "dosage"
-	// FieldUnit holds the string denoting the unit field in the database.
-	FieldUnit = "unit"
 	// FieldDosageFrequency holds the string denoting the dosage_frequency field in the database.
 	FieldDosageFrequency = "dosage_frequency"
 	// FieldStartDate holds the string denoting the start_date field in the database.
@@ -50,7 +48,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldDosage,
-	FieldUnit,
 	FieldDosageFrequency,
 	FieldStartDate,
 	FieldEndDate,
@@ -80,8 +77,6 @@ func ValidColumn(column string) bool {
 var (
 	// DosageValidator is a validator for the "dosage" field. It is called by the builders before save.
 	DosageValidator func(int) error
-	// UnitValidator is a validator for the "unit" field. It is called by the builders before save.
-	UnitValidator func(string) error
 	// DefaultDosageFrequency holds the default value on creation for the "dosage_frequency" field.
 	DefaultDosageFrequency int
 	// DosageFrequencyValidator is a validator for the "dosage_frequency" field. It is called by the builders before save.
@@ -101,11 +96,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByDosage orders the results by the dosage field.
 func ByDosage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDosage, opts...).ToFunc()
-}
-
-// ByUnit orders the results by the unit field.
-func ByUnit(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUnit, opts...).ToFunc()
 }
 
 // ByDosageFrequency orders the results by the dosage_frequency field.
