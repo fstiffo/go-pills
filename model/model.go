@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,7 +13,8 @@ type Unit string
 const (
 	ml Unit = "ml"
 	mg Unit = "mg"
-	u  Unit = "u"
+	u  Unit = "U"
+	ui Unit = "UI"
 )
 
 // ActiveIngredient represents an active ingredient in a medicine or in a prescription.
@@ -20,9 +22,9 @@ type ActiveIngredient struct {
 	gorm.Model
 	Name            string `gorm:"unique;not null"`
 	Stock           int    `gorm:"not null;default:0"`
-	Unit            Unit   `gorm:"not null;default:'ml';check:unit in ('ml', 'mg', 'u')"`
-	LastConsumedAt  time.Time
-	LastStockedAt   time.Time
+	Unit            Unit   `gorm:"not null;default:'ml';check:unit in ('ml', 'mg', 'U', 'UI')"`
+	LastConsumedAt  sql.NullTime
+	LastStockedAt   sql.NullTime
 	Medicines       []Medicine
 	Prescriptions   []Prescription
 	StockLogs       []StockLog
@@ -49,10 +51,10 @@ type Prescription struct {
 	gorm.Model
 	ActiveIngredientID uint `gorm:"not null"`
 	ActiveIngredient   ActiveIngredient
-	Dosage             int       `gorm:"not null;check:dosage > 0"`                      // Dosage in active principle measure unit
-	DosageFrequency    int       `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
-	StartDate          time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	EndDate            time.Time
+	Dosage             int `gorm:"not null;check:dosage > 0"`                      // Dosage in active principle measure unit
+	DosageFrequency    int `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
+	StartDate          sql.NullTime
+	EndDate            sql.NullTime
 	ConsumptionLogs    []ConsumptionLog
 }
 

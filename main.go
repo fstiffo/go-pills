@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -10,9 +12,9 @@ import (
 func main() {
 	db, err := gorm.Open(sqlite.Open("pills.db"), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	// Migrate the schema
-	db.AutoMigrate(&model.ActiveIngredient{}, &model.Medicine{}, &model.Prescription{}, &model.ConsumptionLog{}, &model.StockLog{})
+	// Migrate the schema and populate the database
+	model.Populate(db)
 }
