@@ -11,8 +11,8 @@ import (
 type Unit string
 
 const (
-	ml Unit = "ml"
 	mg Unit = "mg"
+	ml Unit = "ml"
 	u  Unit = "U"
 	ui Unit = "UI"
 )
@@ -20,9 +20,9 @@ const (
 // ActiveIngredient represents an active ingredient in a medicine or in a prescription.
 type ActiveIngredient struct {
 	gorm.Model
-	Name            string `gorm:"unique;not null"`
-	Stock           int    `gorm:"not null;default:0"`
-	Unit            Unit   `gorm:"not null;default:'ml';check:unit in ('ml', 'mg', 'U', 'UI')"`
+	Name            string  `gorm:"unique;not null"`
+	Stock           float32 `gorm:"not null;default:0"`
+	Unit            Unit    `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'U', 'UI')"`
 	LastConsumedAt  sql.NullTime
 	LastStockedAt   sql.NullTime
 	Medicines       []Medicine
@@ -38,8 +38,8 @@ type Medicine struct {
 	MAH                string
 	ActiveIngredientID uint `gorm:"not null"`
 	ActiveIngredient   ActiveIngredient
-	Dosage             int    `gorm:"not null;check:dosage > 0"` // Dosage in active principle measure unit for each unit of medicine
-	ATC                string `gorm:"unique;not null;check:length(atc) >= 7"`
+	Dosage             float32 `gorm:"not null;check:dosage > 0"` // Dosage in active principle measure unit for each unit of medicine
+	ATC                string  `gorm:"unique;not null;check:length(atc) >= 7"`
 	Package            string
 	Form               string
 	BoxSize            int `gorm:"not null;check:box_size > 0"`
@@ -51,8 +51,8 @@ type Prescription struct {
 	gorm.Model
 	ActiveIngredientID uint `gorm:"not null"`
 	ActiveIngredient   ActiveIngredient
-	Dosage             int `gorm:"not null;check:dosage > 0"`                      // Dosage in active principle measure unit
-	DosageFrequency    int `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
+	Dosage             float32 `gorm:"not null;check:dosage > 0"`                      // Dosage in active principle measure unit
+	DosageFrequency    int     `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
 	StartDate          sql.NullTime
 	EndDate            sql.NullTime
 	ConsumptionLogs    []ConsumptionLog
@@ -66,7 +66,7 @@ type ConsumptionLog struct {
 	ActiveIngredientID uint `gorm:"not null"`
 	ActiveIngredient   ActiveIngredient
 	ConsumedAt         time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	Units              int       `gorm:"not null;check:units > 0"` // Units in active principle measure unit
+	Units              float32   `gorm:"not null;check:units > 0"` // Units in active principle measure unit
 }
 
 // StockLog represents a log of a single stocking of an active ingredient.
@@ -78,5 +78,5 @@ type StockLog struct {
 	ActiveIngredient   ActiveIngredient
 	StockedAt          time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
 	Boxes              int       `gorm:"not null;check:boxes > 0"` // Boxes of medicine
-	Units              int       `gorm:"not null;check:units > 0"` // Units in active principle measure unit
+	Units              float32   `gorm:"not null;check:units > 0"` // Units in active principle measure unit
 }

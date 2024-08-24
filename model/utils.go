@@ -68,7 +68,7 @@ func populatePrescriptions(db *gorm.DB) {
 		{ActiveIngredientID: ingredientMap["insulina glargine"], Dosage: 16, DosageFrequency: 1},
 		{ActiveIngredientID: ingredientMap["metoprololo"], Dosage: 50, DosageFrequency: 1},
 		{ActiveIngredientID: ingredientMap["micofenolato mofetile"], Dosage: 1500, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["prednisone"], Dosage: 5, DosageFrequency: 1},
+		{ActiveIngredientID: ingredientMap["prednisone"], Dosage: 7.5, DosageFrequency: 1},
 		{ActiveIngredientID: ingredientMap["zofenopril calcio"], Dosage: 30, DosageFrequency: 1},
 	}
 
