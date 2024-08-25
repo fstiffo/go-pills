@@ -21,22 +21,23 @@ func Populate(db *gorm.DB) {
 	// Populate the database with the necessary data
 	populateActiveIngredients(db)
 	populatePrescriptions(db)
+	populateMedicines(db)
 	log.Println("Database populated")
 }
 
 func populateActiveIngredients(db *gorm.DB) {
 	// Create the active ingredients
 	activeIngredients := []ActiveIngredient{
-		{Name: "acido acetilsalicilico"},
-		{Name: "allopurinolo"},
-		{Name: "amlodipina"},
-		{Name: "colicalciferolo", Unit: ui},
-		{Name: "doxazosina"},
-		{Name: "insulina glargine", Unit: u},
-		{Name: "metoprololo"},
-		{Name: "micofenolato mofetile"},
-		{Name: "prednisone"},
-		{Name: "zofenopril calcio"},
+		{Name: "acido acetilsalicilico", ATC: "B01AC06"},
+		{Name: "allopurinolo", ATC: "M04AA01"},
+		{Name: "amlodipina", ATC: "C08CA01"},
+		{Name: "colicalciferolo", ATC: "A11CC05", Unit: ui},
+		{Name: "doxazosina", ATC: "C02CA04"},
+		{Name: "insulina glargine", ATC: "A10AE04", Unit: ui},
+		{Name: "metoprololo", ATC: "C07AB02"},
+		{Name: "micofenolato mofetile", ATC: "L04AA06"},
+		{Name: "prednisone", ATC: "H02AB07"},
+		{Name: "zofenopril calcio", ATC: "C09AA15"},
 	}
 
 	result := db.Create(&activeIngredients)
@@ -50,26 +51,26 @@ func populateActiveIngredients(db *gorm.DB) {
 func populatePrescriptions(db *gorm.DB) {
 	// Recover the active ingredients
 	var activeIngredients []ActiveIngredient
-	result := db.Select("ID", "name").Find(&activeIngredients)
+	result := db.Select("ATC", "name").Find(&activeIngredients)
 	if result.Error != nil {
 		log.Fatalf("failed to recover active ingredients: %v", result.Error)
 	}
 
-	ingredientMap := make(map[string]uint)
+	ingredientMap := make(map[string]string)
 	for _, ingredient := range activeIngredients {
-		ingredientMap[ingredient.Name] = ingredient.ID
+		ingredientMap[ingredient.Name] = ingredient.ATC
 	}
 	prescriptions := []Prescription{
-		{ActiveIngredientID: ingredientMap["acido acetilsalicilico"], Dosage: 100, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["allopurinolo"], Dosage: 150, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["amlodipina"], Dosage: 5, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["colicalciferolo"], Dosage: 40, DosageFrequency: 7},
-		{ActiveIngredientID: ingredientMap["doxazosina"], Dosage: 2, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["insulina glargine"], Dosage: 16, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["metoprololo"], Dosage: 50, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["micofenolato mofetile"], Dosage: 1500, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["prednisone"], Dosage: 7.5, DosageFrequency: 1},
-		{ActiveIngredientID: ingredientMap["zofenopril calcio"], Dosage: 30, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: 1000, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["allopurinolo"], Dosage: 1500, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["amlodipina"], Dosage: 50, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["colicalciferolo"], Dosage: 100000, DosageFrequency: 7},
+		{RelatedATC: ingredientMap["doxazosina"], Dosage: 20, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["insulina glargine"], Dosage: 160, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["metoprololo"], Dosage: 500, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: 15000, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["prednisone"], Dosage: 75, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 300, DosageFrequency: 1},
 	}
 
 	result = db.Create(&prescriptions)
@@ -77,4 +78,96 @@ func populatePrescriptions(db *gorm.DB) {
 		log.Fatalf("failed to populate prescriptions: %v", result.Error)
 	}
 	log.Printf("Prescriptions populated, %d records inserted", result.RowsAffected)
+}
+
+func populateMedicines(db *gorm.DB) {
+	// Create the medicines
+	medicines := []Medicine{
+		{Name: "Acido Acetilsalicilico",
+			MAH:        "Mylan S.p.A.",
+			RelatedATC: "B01AC06",
+			AIC:        "047065014",
+			Dosage:     1000,
+			Package:    "blister",
+			Form:       "compressa gastroresistente",
+			BoxSize:    30},
+		{Name: "Allopurinolo Sandoz",
+			MAH:        "Sandoz S.p.A.",
+			RelatedATC: "M04AA01",
+			AIC:        "039060292",
+			Dosage:     3000,
+			Package:    "blister",
+			Form:       "compressa",
+			BoxSize:    30},
+		{Name: "Norvasc",
+			MAH:        "Viatris Pharms S.r.l.",
+			RelatedATC: "C08CA01",
+			AIC:        "027428010",
+			Dosage:     50,
+			Package:    "blister",
+			Form:       "compressa",
+			BoxSize:    28},
+		{Name: "Colecalciferolo IPSO Pharma",
+			MAH:        "IPSO Pharma S.r.l.",
+			RelatedATC: "A11CC05",
+			AIC:        "043913019",
+			Dosage:     1000000,
+			Package:    "flacone",
+			Form:       "gocce orali, soluzione",
+			BoxSize:    1},
+		{Name: "Doxazosin Auribindo",
+			MAH:        "Auribindo Pharma (Italia) S.r.l.",
+			RelatedATC: "C02CA04",
+			AIC:        "040243180",
+			Dosage:     40,
+			Package:    "blister",
+			Form:       "compressa",
+			BoxSize:    20},
+		{Name: "Toujeo",
+			MAH:        "Sanofi-Aventis Deutschland GMBH",
+			RelatedATC: "A10AE04",
+			AIC:        "043192347",
+			Dosage:     4500,
+			Package:    "penna",
+			Form:       "sospensione iniettabile 300 unità/ml",
+			BoxSize:    3},
+		{Name: "Metoprololo DOC Generici",
+			MAH:        "DOC Generici S.r.l.",
+			RelatedATC: "C07AB02",
+			AIC:        "035054055",
+			Dosage:     1000,
+			Package:    "blister PVC/Al",
+			Form:       "compressa",
+			BoxSize:    30},
+		{Name: "Micofenolato Mofetile Tillomed",
+			MAH:        "Tillomed Italia S.r.l.",
+			RelatedATC: "L04AA06",
+			AIC:        "045833011",
+			Dosage:     5000,
+			Package:    "blister PVC/Al",
+			Form:       "compressa rivestita con film",
+			BoxSize:    50},
+		{Name: "Deltacortene",
+			MAH:        "Bruno Farmaceutici S.p.A.",
+			RelatedATC: "H02AB07",
+			AIC:        "010089047",
+			Dosage:     50,
+			Package:    "blister",
+			Form:       "compressa",
+			BoxSize:    20},
+		{Name: "Zofenopril Mylan Generics",
+			MAH:        "Mylan S.p.A.",
+			RelatedATC: "C09AA15",
+			AIC:        "040724041",
+			Dosage:     300,
+			Package:    "blister PVC/Aclar/Al",
+			Form:       "compressa rivestita con film",
+			BoxSize:    28},
+	}
+
+	result := db.Create(&medicines)
+	if result.Error != nil {
+		log.Fatalf("failed to populate medicines: %v", result.Error)
+	}
+	log.Printf("Medicines populated, %d records inserted", result.RowsAffected)
 }
