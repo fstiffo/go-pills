@@ -6,26 +6,44 @@ import (
 	"gorm.io/gorm"
 )
 
-// Populate creates the tables in the database and pupulates them with the necessary data
+// Populate creates the tables in the database and populates them with the necessary data
 func Populate(db *gorm.DB) {
-	// Clear the database
-	db.Migrator().DropTable(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{})
 
 	// Migrate the schema
-	err := db.AutoMigrate(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{})
-	if err != nil {
-		log.Fatalf("failed to migrate schema: %v", err)
+	if err := resetSchema(db); err != nil {
+		log.Fatalf("failed to reset schema: %v", err)
 	}
-	log.Println("Schema migrated")
 
 	// Populate the database with the necessary data
-	populateActiveIngredients(db)
-	populatePrescriptions(db)
-	populateMedicines(db)
+	if err := populateActiveIngredients(db); err != nil {
+		log.Fatalf("failed to populate active ingredients: %v", err)
+	}
+	if err := populatePrescriptions(db); err != nil {
+		log.Fatalf("failed to populate prescriptions: %v", err)
+	}
+	if err := populateMedicines(db); err != nil {
+		log.Fatalf("failed to populate medicines: %v", err)
+	}
+
 	log.Println("Database populated")
 }
 
-func populateActiveIngredients(db *gorm.DB) {
+// resetSchema drops the tables in the database and migrates the schema
+func resetSchema(db *gorm.DB) error {
+	// Clear the database
+	if err := db.Migrator().DropTable(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{}); err != nil {
+		return err
+	}
+
+	// Migrate the schema
+	if err := db.AutoMigrate(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{}); err != nil {
+		return err
+	}
+	log.Println("Schema migrated")
+	return nil
+}
+
+func populateActiveIngredients(db *gorm.DB) error {
 	// Create the active ingredients
 	activeIngredients := []ActiveIngredient{
 		{Name: "acido acetilsalicilico", ATC: "B01AC06"},
@@ -41,19 +59,19 @@ func populateActiveIngredients(db *gorm.DB) {
 	}
 
 	result := db.Create(&activeIngredients)
-
 	if result.Error != nil {
-		log.Fatalf("failed to populate active ingredients: %v", result.Error)
+		return result.Error
 	}
 	log.Printf("Active ingredients populated, %d records inserted", result.RowsAffected)
+	return nil
+
 }
 
-func populatePrescriptions(db *gorm.DB) {
+func populatePrescriptions(db *gorm.DB) error {
 	// Recover the active ingredients
 	var activeIngredients []ActiveIngredient
-	result := db.Select("ATC", "name").Find(&activeIngredients)
-	if result.Error != nil {
-		log.Fatalf("failed to recover active ingredients: %v", result.Error)
+	if result := db.Select("ATC", "name").Find(&activeIngredients); result.Error != nil {
+		return result.Error
 	}
 
 	ingredientMap := make(map[string]string)
@@ -73,14 +91,15 @@ func populatePrescriptions(db *gorm.DB) {
 		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 30 * 1000, DosageFrequency: 1},
 	}
 
-	result = db.Create(&prescriptions)
+	result := db.Create(&prescriptions)
 	if result.Error != nil {
-		log.Fatalf("failed to populate prescriptions: %v", result.Error)
+		return result.Error
 	}
 	log.Printf("Prescriptions populated, %d records inserted", result.RowsAffected)
+	return nil
 }
 
-func populateMedicines(db *gorm.DB) {
+func populateMedicines(db *gorm.DB) error {
 	// Create the medicines
 	medicines := []Medicine{
 		{Name: "Acido Acetilsalicilico",
@@ -167,7 +186,8 @@ func populateMedicines(db *gorm.DB) {
 
 	result := db.Create(&medicines)
 	if result.Error != nil {
-		log.Fatalf("failed to populate medicines: %v", result.Error)
+		return result.Error
 	}
 	log.Printf("Medicines populated, %d records inserted", result.RowsAffected)
+	return nil
 }
