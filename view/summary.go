@@ -13,4 +13,5 @@ func summaryScreen() {
 
 	tableData := model.GetPrescriptionsSummary(control.GetDB())
 	pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+	pterm.Println("\nLast logs refresh: ", model.LastRefresh(control.GetDB()))
 }
