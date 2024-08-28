@@ -9,6 +9,7 @@ import (
 func summaryScreen() {
 	clear()
 	pterm.DefaultHeader.WithFullWidth().Println("SUMMARY")
+	pterm.Println("\nPrescriptions:")
 
 	tableData := model.GetPrescriptionsSummary(control.GetDB())
 	pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
