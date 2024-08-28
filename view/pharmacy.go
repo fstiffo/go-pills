@@ -4,5 +4,5 @@ import "github.com/pterm/pterm"
 
 func updatePharmacyScreen() {
 	clear()
-	pterm.DefaultHeader.WithFullWidth().Println("Update Pharmacy")
+	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PHARMACY")
 }

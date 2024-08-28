@@ -18,7 +18,7 @@ func MainLoop() {
 		case control.UpdatePharmacyScreen:
 			updatePharmacyScreen()
 		case control.UpdatePrescriptionScreen:
-			updatePrescriptionScreen()
+			updatePrescriptionsScreen()
 		case control.AddMedicineScreen:
 			addMedicineScreen()
 		}
@@ -46,7 +46,7 @@ func menu() {
 		BackgroundStyle: pterm.NewStyle(pterm.BgBlue),
 		Margin:          5,
 	}
-	menuHeader.Println("F1: Summary    F2: Update Pharmacy    F3: Update Prescription    F4: Add Medicine    F5: Refresh     ESC: Exit")
+	menuHeader.Println("F1: Summary    F2: Update Pharmacy    F3: Update Prescriptions    F4: Add Medicine    F5: Refresh    ESC: Exit")
 }
 
 func clear() {
