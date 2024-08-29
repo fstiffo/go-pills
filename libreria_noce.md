@@ -1,6 +1,7 @@
 # Libreria Noce
 
 ## Scaletta 4
+
 ### Scaffale A
 - Barwise, and Etchemendy. *Hyperproof: For Macintosh*
 - Arici, Graziano. *Andava nell'acqua crescendo*. Consorzio Venezia Nuova, 1999.
@@ -17,6 +18,7 @@
 - Marchesi, *Storia della letteratura latina 1-2*
 - Macchiavelli, *Il principe*
 - Belli, *I sonetti* (vol 2 e 4)
+- 
 ### Scaffale C
 - A.A.V.V., *A la decouverte de la France*
 - Manzoni, *I promessi sposi*
@@ -31,8 +33,10 @@
 - Mamy, *L'Allée de Mélisande*
 - Aho, Sethi, Ullman, *Compilers: Principles, Techniques, and Tools*
 - Halley, *Radici*  (nota di possesso Gabriella Tonolo)
+- 
 ### Scaffale D
 - **BICCHIERI PREZIOSI E MAGLIONI**
+  
 ### Scaffale E
 - Gaita, *Il pensiero del cuore. Musica, simbolo e inconscio*
 - Petronio, *Teorie e realtà del romanzo*
@@ -52,6 +56,7 @@
 - Noiray, *Vocubulaire de la musique de l'époque classique* (con dedica)
 
 ## Scaletta 3
+
 ### Scaffale B
 - Zanon, *Antico ghetto*
 - Pancol, *Les ecureuils de central park*
@@ -82,6 +87,7 @@
 - Korsakov, *Principi di orchestrazione*
 - James, *Il carteggio Aspern*
 - Paoli, *Vita romana* (nota di possesso Gabriella Tonolo)
+  
 ### Scaffale C
 - Wolfram, *Mathematica*
 - Petronio, *L'attività letteraria in Italia*
@@ -89,6 +95,7 @@
 - Forte, Gilbert, *Introuccion al analisis schenkeriano*
 - Ceserani, De Federicis, *Il materiale e l'immaginario* (vol 1-5)
 - Prigogine, *Introduzione alla termodinamica dei processi irreversibili*
+
 ### Scaffale D
 - Patterson and Hennessy, *Computer Organization and Design*
 - Verga, *I Malavoglia*
@@ -107,6 +114,7 @@
 - Lenzi, *Dizionario di giornalismo*
 - Berto, *Il male oscuro*
 - PSION, *PSION Organizer II. Istruzioni d'uso*
+
 ### Scaffale E
 - A.A.V.V., *Musica e storia* (vol 7 n.2 dicembre 1999)
 - A.A.V.V., *Musica e storia* (vol 12 n.2 agosto 2004)
@@ -125,6 +133,7 @@
 - A.A.V:V., *I romantici tedeschi* (a cura di Giuseppe Bevilacqua)
 - De la Motte, *Manuale di armonia*
 - Shoda, *Washoku. L'arte della cucina giapponese*
+
 ### Scaffale F
 - Trubeckoj, *Fondamenti di fonologia* (fotocopie sottolineate)
 - Akmajiàn, Demers, Farmer, Harnish, *Linguistica* (cap. 8 fotocopie sottolineate)
@@ -135,6 +144,7 @@
 - Nabokov, *Lezioni di letteratura*
 - Marchese, *L'officina del racconto. Semiotica della narratività*
 - Levi, *La tregua*
+
 ### Scaffale G
 - Calandri, *Venezia*
 - Prodi, *Analisi matematica*
