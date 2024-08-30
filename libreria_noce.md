@@ -17,7 +17,7 @@
 - Tozzi, *Con gli occhi chiusi*
 - Marchesi, *Storia della letteratura latina 1-2*
 - Macchiavelli, *Il principe*
-- Belli, *I sonetti* (vol 2 e 4)
+- Belli, *I sonetti* (vol 2-4)
 - 
 ### Scaffale C
 - A.A.V.V., *A la decouverte de la France*
@@ -33,7 +33,9 @@
 - Mamy, *L'Allée de Mélisande*
 - Aho, Sethi, Ullman, *Compilers: Principles, Techniques, and Tools*
 - Halley, *Radici*  (nota di possesso Gabriella Tonolo)
-- 
+- Parodi, Vallacco, *Grammathèque*
+- Parodi, Vallacco, *Grammathèque. Exercices*
+ 
 ### Scaffale D
 - **BICCHIERI PREZIOSI E MAGLIONI**
   
@@ -55,7 +57,35 @@
 - A.A.V.V., *Romanticismo e musica. L'estetica musicale da Kant a Nietzsche* ( a cura di Giovanni Guanti)
 - Noiray, *Vocubulaire de la musique de l'époque classique* (con dedica)
 
+### Scaffale F
+- Nensi, Nigris, Tonolo, *Catalogo del fondo musicale della Biblioteca Comunale di Treviso* (tomi 1-5)
+- A.A.V.V., *L'aere è fosoc, il ciel s'imbruna. Artisti e musica a Venezia dalla fine della Repubblica al Congresso di Vienna* (atti del convegno)
+- Stiffoni, *Non son cattivo comico*
+- Rosen, *Le forme-sonata*
+- Benjamin, *Angelus Novus*
+- *The MOJO Collection. The ultimate music companion* (3rd edition)
+- Semi, *Quarant'anni dopo. Dieci variazioni sul tema di Venezia*
+- Semi, *'more. Libere associazioni Veneziane*
+- A.A.V.V., *Le meraviglie del possibile. Antologia della fantascienza* (a cura di Solmi e Fruttero)
+- Calandri, *Venezia*
+- Prodi, *Analisi matematica*
+
+### Scaffale G
+- La Stella, *Santi e fanti. Dizionario dei nomi di persona*
+- Andreae, *L'immagine di Ulisse. Mito e archeologia*
+- Calasso, *La letteratura e gli dei*
+- A.A.V.V., *Il canto di Metastasio. Atti del convegno 1999* (2 volumi)
+- A.A.V.V., *Ottocento e oltre. Scritti in onore di Raoul Meloncelli* (con articolo di Giacomo)
+- A.A.V.V., *Encicolpedia della musica. Il novecento (vol 1)*
+- Girdelstone, *La Tragédie en musique (1673-1750)*
+- Rameau, Cahusac, *Zoroastre* (libretto)
+- Bloom, *Una mappa della dislettura*
+- A.A.V.V., *Danubio. Una civiltà musicale. Vol 3 Slovacchia e Ungheria*
+
+
 ## Scaletta 3
+
+
 
 ### Scaffale B
 - Zanon, *Antico ghetto*
@@ -144,12 +174,119 @@
 - Nabokov, *Lezioni di letteratura*
 - Marchese, *L'officina del racconto. Semiotica della narratività*
 - Levi, *La tregua*
-
-### Scaffale G
-- Calandri, *Venezia*
-- Prodi, *Analisi matematica*
 - Radford, Atkinson, Britain, Clahsen, Spencer, *Linguistics. An introduction*
 - Lagrange, *Mechanique analytique*
-- Parodi, Vallacco, *Grammathèque*
+
+### Scaffale G
+
+## Scaletta 1
+
+### Scaffale A
+- Gantmacher, *Lezioni di meccanica analitica*
+- Prodi, *Analisi matematica parte II*
+- Apostol, *Calcolo. Vol II Geometria*
+- Tessari, *La drammaturgia da Escilo a Goldoni*
+- Aristofane, *Commedie III Vol. La pace e gli uccelli*
+- Beuavert, *Ecouter Venise*
+- A.A.V.V., *Cinema e scuola* (con dedica di Roberto Chiesi)
+- Bazin, *Che cos'è il cinema?*
+- Mannoni, *Clefs pour l'immaginaire*
+- Procacci, *Storia degli italiani. Vol 1*
+- Born, *La sintesi Einsteiniana*
+- Lorenzetti, *Venezia e il suo estuario*
+  
+### Scaffale B
+- A.A.V.V., *Art at the turn of the millennium*
+- Boch, *Le faux amis aux aguets. Dizionario di false analogie tra francese e italiano*
+- Bressan,*La basilica di S. Marco in Venezia* (con dedica a Mario)
+- Kafka, *Descrizione di una battaglia*
+- Kleist, *Tutti i racconti*
+- Ritter, *La formazione dell'europa moderna*
+- A.A.V.V., *Tempo e spazio nel cinema*
+- Carnap, *I fondamenti filosofici della fisica*
+- Canepari, *Avviamento alla fonetica*
+- Kolmogorov, Fomin, *Elementi di teoria delle funzioni e di analisi funzionale*
+- Huang, *Statistical Mechanics*
+- Canziani, *Comunicare spettacolo*
+- Grevisse, *Le bon usage*
+- Scherer, *La dramaturgie classique en France*
+- A.A.V.V., *Le cinéma de Michel Legrand* (booklet e 4 CD)
+
+### Scaffale C
+- Karwin, *SQL quello che i libri non dicono*
+- Beers, *Introduction to the theory of error* (fotocopie sottolineate)
+- Shiber, *An introduction to Unification-based approaches to grammar*
+- Barwise, Echemendy, *The language of first-order logic*
+- Canepari, *Manuale di pronuncia italiana (seconda edizione)*
+- Tausel, *FORTH un linguaggio per elaboratori*
+- Pittano, *Sinonimi e contrari*
+- Meier, *Civilization* (videogioco Mac prima edizione)
+- Feynman, *Feynman's lectures on physics. Vol 1. Part. 1* (edizione bilingue)
+- Feynman, *Feynman's lectures on physics. Vol 2*
+- Monro, *FORTRAN 77*
+- Allen, *Natural language understanding*
+- Arnold, *Metodi matematici della meccanica classica*
+- Einstein, *La teoria della relatività*
+- Demidovich, *Recueil d'exercices et de problèmes d'analyse mathématique*
+  
+### Scaffale D
+- **RIVISTE**
+
+### Scaffale E
+- Walcott, *Il levriero di Tiepolo* (con testo a fronte)
+- Apple, *Human interface guidelines.  The Apple desktop interface*
+- Zorzi, *La repubblica del leone. Storia di Venezia*
+- Finocchi Ghersi, *Il Rinascimento veneziano di Giovanni Bellini*
+- Berttini, *Forma di Venezia*
+- A.A.V.V., *Guida ai musei di Vienna*
+- Mongrédien, *La musique en France des Lumières au Romantisme*
+- Noiray, *L'opéra seria de Haendel à Mozart* (estratto)
+- Plum, *Learning to program in C*
+- Porro, *Algebra lineare e geometria I*
+- A.A.V.V., *Murazzi. Le muraglie della paura*
+- Moltedo, *Welcome to Venice. Cento volte imitata, copiata, sognata*
+- A.A.V.V., *ARTIGRAMA. Revista del departamento de historia del arte. n. 12 (1996-97)* (con articolo di Giacomo)
+- A.A.V.V., *Laura Betti, illuminata di nero* (a cura di Roberto Chiesi)
+- A.A.V.V., *Grammaire Larousse du XX siècle (1936)*
+- Marinier et Mathieu, *C'est une affaire de saucisse. Mille et une expressions pour apprendre l'allemand*
+- Paolini e Vacis, *Il racconto del Vajont*
+- TCI, *Guide d'Europa. Parigi (1993)*
+- TCI, *Guide d'Italia. Venezia e il Veneto (1999)*
+- Ghezzo, *Città mia. Memorie veneziane* (3 copie)
+- Ancet, *Nouvelle théorie de la relativité et de l'électrodymanique*
+- Sobol, *Alma*
+- Gadji, *Pap, Ngagne, Yatt e gli altri*
 
 
+## Scaletta 2
+
+### Scaffale A
+- Dickens, *Oliver Twist, or, The Parish Boy's Progress*
+- Ovidio, *Metamorfosi*
+- Schoenberg, *Manuale di armonia*
+- Williams, *Microphone Arrays for Stereo and Multichannel Sound Recording*
+- Sanchez, Martin, Matilla, *Gramática practica de español para extranjeros*
+- Piersanti, *Il filo dell'acqua*
+- Barton, Berwick and Ristad, *Computational complexity and natural language*
+- Aho, Ullman, *The theory of parsing, translation, and compiling*
+- Millman, Grabel, *Microelectronics*
+- Michelin, *España. Guia turistica*
+- A.A.V.V., *Chateaux de la Loire* (Encyclopedies du voyage, Gallimard)
+- Gardner, *Maquinas y diagramas logicos*
+  
+### Scaffale B
+- A.A.V.V., *Piccolo museo della Pietà "Antonio Vivaldi"*
+- Mason, *BASIC. Matrix methods*
+- Mason, *BASIC. Numerical mathematics*
+- Strauss, *Partial differential equations. An introduction*
+- Hopcroft, Ullman, *Introduction to automata theory, languages, and computation*
+- Najmark, Stern, *Teoria delle rappresentazioni dei gruppi*
+- Tolkien, *The Hobbit*
+- Porta, *Le poesie. Vol 1*
+- Tito Livio, *Storia di Roma. Libri 37-38* (con testo a fronte)
+- Les Guides Bleus, *Framce (1963)*
+- Moindrot, *L'opéra seria ou le règne des castrats*
+- Ashcroft, Mermin, *Solid state physics*
+- Arrivé, Gadet, Galmiche, *La grammaire d'aujourd'hui*
+- Arrigoni, Della porta, Selva, *Manuale di biblioteconomia*
+- A.A.V.V., *Dictionnaire de la musique en France au XVII et XVIII siècles*
