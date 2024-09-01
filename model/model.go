@@ -22,14 +22,14 @@ type ActiveIngredient struct {
 	Name string `gorm:"unique;not null"`
 	ATC  string `gorm:"uniqueIndex;not null;size:7;check:length(ATC) = 7"`
 	// Stock stores units of active principle x 1000 (e.g. 1 mg = 1000)
-	Stock           int64 `gorm:"not null;default:0"`
-	Unit            Unit  `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'U', 'UI')"`
-	LastConsumedAt  sql.NullTime
-	LastStockedAt   sql.NullTime
-	Medicines       []Medicine       `gorm:"foreignKey:RelatedATC;references:ATC"`
-	Prescriptions   []Prescription   `gorm:"foreignKey:RelatedATC;references:ATC"`
-	StockLogs       []StockLog       `gorm:"foreignKey:RelatedATC;references:ATC"`
-	ConsumptionLogs []ConsumptionLog `gorm:"foreignKey:RelatedATC;references:ATC"`
+	Stock          int64 `gorm:"not null;default:0"`
+	Unit           Unit  `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'U', 'UI')"`
+	LastConsumedAt sql.NullTime
+	LastStockedAt  sql.NullTime
+	Medicines      []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC"`
+	Prescriptions  []Prescription `gorm:"foreignKey:RelatedATC;references:ATC"`
+	StockLogs      []StockLog     `gorm:"foreignKey:RelatedATC;references:ATC"`
+	IntakeLogs     []IntakeLog    `gorm:"foreignKey:RelatedATC;references:ATC"`
 }
 
 // Medicine represents a medicine that can be purchased.
@@ -40,11 +40,11 @@ type Medicine struct {
 	RelatedATC string `gorm:"not null"`
 	AIC        string `gorm:"unique;not null;size: 9;check:length(AIC) = 9"`
 	// Dosage stores units of active ingredient for each unit of medicine x 1000 (e.g. 1 mg = 1000)
-	Dosage       int64 `gorm:"not null;check:dosage > 0"`
-	Package      string
-	Form         string
-	BoxSize      int `gorm:"not null;check:box_size > 0"`
-	StockingLogs []StockLog
+	Dosage    int64 `gorm:"not null;check:dosage > 0"`
+	Package   string
+	Form      string
+	BoxSize   int `gorm:"not null;check:box_size > 0"`
+	StockLogs []StockLog
 }
 
 // Prescription represents a prescription for a single active ingredient.
@@ -53,14 +53,14 @@ type Prescription struct {
 	RelatedATC string `gorm:"not null"`
 	// Dosage store active ingredient units prescibed x 1000 (e.g. 1 mg = 1000)
 	Dosage          int64 `gorm:"not null;check:dosage > 0"`
-	DosageFrequency int   `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
+	DosingFrequency int   `gorm:"not null;check:dosage_frequency > 0;default: 1"` // Dosage frequency in days
 	StartDate       sql.NullTime
 	EndDate         sql.NullTime
-	ConsumptionLogs []ConsumptionLog
+	IntakeLogs      []IntakeLog
 }
 
-// ConsumptionLog represents a log of a single consumption of a prescription.
-type ConsumptionLog struct {
+// IntakeLog represents a log of a single prescription active ingredient intake.
+type IntakeLog struct {
 	gorm.Model
 	PrescriptionID uint      `gorm:"index;not null"`
 	RelatedATC     string    `gorm:"index;not null"`

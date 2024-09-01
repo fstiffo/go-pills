@@ -35,13 +35,13 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		unit := p.Unit
 		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, unit)
 		dayOrDays := " day "
-		if p.DosageFrequency > 1 {
+		if p.DosingFrequency > 1 {
 			dayOrDays = " days"
 		}
-		frequency := strconv.Itoa(p.DosageFrequency) + dayOrDays
+		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
 		validFrom := p.StartDate.Time.Format("2006-01-02")
 		lastConsumed := p.LastConsumedAt.Time.Format("2006-01-02")
-		stockInDays := strconv.FormatInt(p.Stock/int64(p.DosageFrequency)*int64(p.DosageFrequency), 10)
+		stockInDays := strconv.FormatInt(p.Stock/int64(p.DosingFrequency)*int64(p.DosingFrequency), 10)
 		tableData = append(tableData, []string{name, dosage, frequency, validFrom, lastConsumed, stockInDays})
 	}
 

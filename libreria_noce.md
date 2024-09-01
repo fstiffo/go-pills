@@ -227,6 +227,7 @@
 - Allen, *Natural language understanding*
 - Arnold, *Metodi matematici della meccanica classica*
 - Einstein, *La teoria della relatività*
+- Einstein, *La teoria dei quanti di luce*
 - Demidovich, *Recueil d'exercices et de problèmes d'analyse mathématique*
   
 ### Scaffale D
@@ -306,7 +307,21 @@
 - Payen et Barberousse, *Le guide des fromages*
 - Gibran, *Il profeta*
 - Panofsky, *Il significato nelle arti visive*
-- A.A.V.V., *Il lido illustrato. I manifest* (catalogo della mostra)
+- A.A.V.V., *Il lido illustrato. I manifesti* (catalogo della mostra)
+- A.A.V.V., *Guida ai migliori itinerari in biclicletta in Veneto, Friuli Venezia Giulia, Trentino Alto Adige*
+- Dreyer e Schmitt, *Grammatica tedesca con esercizi*
+- Lamming, *Métro insolite*
+- Michelin, *Paris. Plan (1997)*
+- Flachaire, *Methode de langues musicologiques. Allemand (Fascicule 1-2)*
+- A.A.V.V., *Il piano di attacco austriaco contro Venezia*
+- Michelin, *Carte 1/200.000. 81 Avignone-Digne (1984)*
+- Michelin, *Carte 1/200.000. 83 Carcassonne-Nimes (1984)*
+- Michelin, *Carte 1/1.000.000. 990 Espana Portugal (1984)*
+- Firestone Hispania, *Mapa turistico 1/200.000 T-28 Costa Blanca (1979)*
+- RATP, *Grand plan Ile-de-France (1998)*
+- RATP, *Plan Paris (2023)*
+- RATP, *Plan des lignes Paris (2022)*
+- Starobinski, *Le mythe au XVIII siècle* (articiolo fotocopie)
 
 
 ## Scaletta 2
@@ -340,6 +355,7 @@
 - Ashcroft, Mermin, *Solid state physics*
 - Arrivé, Gadet, Galmiche, *La grammaire d'aujourd'hui*
 - Arrigoni, Della porta, Selva, *Manuale di biblioteconomia*
+- Piccini, Torno e Vottari, *I test dei concorsi per bibliotecario (eserciziario)*
 - A.A.V.V., *Dictionnaire de la musique en France au XVII et XVIII siècles*
 - Mamy, *L'Allée de Mélisande*
 
@@ -364,4 +380,20 @@
 - A.A.V.V., *Il cinema ritrovato 2007. Cineteca del Comune di Bologna*
 - A.A.V.V., *Pier Paolo Pasolini. Poet of ashes (edited by Chiesi e Mancini)*
 - Lipschutz, *Collana Schaum. Teoria e problemi di topologia*
-- Bresci, Mehlman, Pellegrini e Stambler, *Chimica generale moderna*  
+- Bresci, Mehlman, Pellegrini e Stambler, *Chimica generale moderna*
+
+### Scaffale F
+- Singer, Thorpe, *Lezioni di topologia elementare e di geometria*
+- Scholz, *Storia della logica*
+- Shakespeare, *La dodicesima notte (testo a fronte)*
+- Della Valle, *Iudit*
+- Brasca e Levi, *Logaritmi. Tavole logaritmiche, trigonometriche e aritmetiche*
+- Einstein, Debye, Born e Karman, *La teoria quantistica del calore specifico*
+- Shakespeare, *Sogni di una notte di mezza estate*
+- Prévost, *Manon Lescaut (in italiano)*
+- A.A.V.V., *Hou Hsiao-hsien. Cinema delle memorie nel corpo del tempo (a cura di R. Chiesi)* (artico di Giacomo)
+- Lodi e Pacini, *Introduzione alle strutture di dati*
+- TCI, *Guide verdi d'Europa e del mondo. Berlino (2016)*
+- Seldeneck, Huder e Eidel, *111 luoghi di Berlino che devi proprio scoprire*
+- Hillairet, *Connaissance du vieux Paris*
+- Gallavotti, *Meccanica elementare*

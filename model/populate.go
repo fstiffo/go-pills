@@ -31,12 +31,12 @@ func Populate(db *gorm.DB) {
 // resetSchema drops the tables in the database and migrates the schema
 func resetSchema(db *gorm.DB) error {
 	// Clear the database
-	if err := db.Migrator().DropTable(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{}); err != nil {
+	if err := db.Migrator().DropTable(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}); err != nil {
 		return err
 	}
 
 	// Migrate the schema
-	if err := db.AutoMigrate(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &ConsumptionLog{}, &StockLog{}); err != nil {
+	if err := db.AutoMigrate(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}); err != nil {
 		return err
 	}
 	log.Println("Schema migrated")
@@ -79,16 +79,16 @@ func populatePrescriptions(db *gorm.DB) error {
 		ingredientMap[ingredient.Name] = ingredient.ATC
 	}
 	prescriptions := []Prescription{
-		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: 100 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["allopurinolo"], Dosage: 150 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["amlodipina"], Dosage: 5 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["colicalciferolo"], Dosage: 10000 * 1000, DosageFrequency: 7},
-		{RelatedATC: ingredientMap["doxazosina"], Dosage: 2 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["insulina glargine"], Dosage: 16 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["metoprololo"], Dosage: 50 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: 1500 * 1000, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["prednisone"], Dosage: 7500, DosageFrequency: 1},
-		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 30 * 1000, DosageFrequency: 1},
+		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: 100 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["allopurinolo"], Dosage: 150 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["amlodipina"], Dosage: 5 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["colicalciferolo"], Dosage: 10000 * 1000, DosingFrequency: 7},
+		{RelatedATC: ingredientMap["doxazosina"], Dosage: 2 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["insulina glargine"], Dosage: 16 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["metoprololo"], Dosage: 50 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: 1500 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["prednisone"], Dosage: 7500, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 30 * 1000, DosingFrequency: 1},
 	}
 
 	result := db.Create(&prescriptions)
