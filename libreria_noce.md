@@ -30,11 +30,11 @@
 - Barnett, *Zoologia: gli invertebrati*
 - Lipmann, *Versificazione italiana e ritmo musicale*
 - Pons, *Dizionatio Tedesco-Italiano/Italiano-Tedesco*
-- Mamy, *L'Allée de Mélisande*
 - Aho, Sethi, Ullman, *Compilers: Principles, Techniques, and Tools*
 - Halley, *Radici*  (nota di possesso Gabriella Tonolo)
 - Parodi, Vallacco, *Grammathèque*
 - Parodi, Vallacco, *Grammathèque. Exercices*
+- Girardet et Cridlig, *Panorama de la langue française 1*
  
 ### Scaffale D
 - **BICCHIERI PREZIOSI E MAGLIONI**
@@ -257,6 +257,57 @@
 - Sobol, *Alma*
 - Gadji, *Pap, Ngagne, Yatt e gli altri*
 
+### Scaffale F
+- Di Giammateo, *Dizionario universale del cinema. Volume primo (I Film)*
+- Thom Thom, Chrixcel, *Guide du street art à Paris*
+- Owsinki, *The mixing engineer's handbook*
+- Watkinson, *The art of digital audio*
+- Eargle, *The microphone book*
+- De Bernardinis, *Robert Altman* (Il Castoro Cinema)
+- Zagarrio, *Francis Ford Coppola* (Il Castoro Cinema)
+- Ghezzi, *Stanley Kubrick* (Il Castoro Cinema)
+- Morandini, *John Huston* (Il Castoro Cinema)
+- Barbera e Mosca, *François Truffaut* (Il Castoro Cinema)
+- Rulli e De Bernardinis, *Roman Polanski* (Il Castoro Cinema)
+- Tinazzi, *Michelangelo Antonioni* (Il Castoro Cinema)
+- Ferrini, *John Ford* (Il Castoro Cinema)
+- Rausa, *Fred Zinnemann* (Il Castoro Cinema)
+- Ellero, *Ettore Scola* (Il Castoro Cinema)
+- Bencivenni, *Luchino Visconti* (Il Castoro Cinema)
+- Murri, *Pier Paolo Pasolini* (Il Castoro Cinema)
+- Cremonini, *Charlie Chaplin* (Il Castoro Cinema)
+- Valentinetti, *Orson Welles* (Il Castoro Cinema)
+- Girlanda e Tella, *Woody Allen* (Il Castoro Cinema)
+- Caprara, *Sam Peckinpah* (Il Castoro Cinema)
+- La Polla, *Steven Spielberg* (Il Castoro Cinema)
+- De Bernardinis, *Nanni Moretti* (Il Castoro Cinema)
+- D'Angelo, *Wim Wenders* (Il Castoro Cinema)
+- Tassone, *Akira Kurosawa* (Il Castoro Cinema)
+- Socci, *Bernardo Bertolucci* (Il Castoro Cinema)
+- Zagarrio, *Frank Capra* (Il Castoro Cinema)
+- Pecori, *Vittorio De Sica* (Il Castoro Cinema)
+- Farassino, *Jean-Luc Godard* (Il Castoro Cinema)
+- Rondolino, *Roberto Rosseellini* (Il Castoro Cinema)
+- Bertolina, *Martin Scorsese* (Il Castoro Cinema)
+- De Fornari, *Walt Disney* (Il Castoro Cinema)
+- Grasso, *Sergej Ejzenstejn* (Il Castoro Cinema)
+- Cattini, *Luis Buñuel* (Il Castoro Cinema)
+
+### Scaffale G
+- Lange e Helliesen, *Edvard Munch. Dal realismo all'espressionismo*
+- A.A.V.V., *Sound recording practice*
+- Huber end Runstein, *Modern recording techniques. 6th edition*
+- Mangione, *Costruire il suono. Vol 1-3*
+- Alexander, *The inventor of stereo: the life and works of Alan Dower Blumlein*
+- Zero, *Zer0039. Musica, arte, divertimento: guida al meglio di un anno italiano (2002-03)*
+- Zero, *Guida 2005. Il divertimento made in Italy*
+- Singh and Singh, *Phonetics. Principles and practices*
+- Chiesi, *Alain Delon*
+- Payen et Barberousse, *Le guide des fromages*
+- Gibran, *Il profeta*
+- Panofsky, *Il significato nelle arti visive*
+- A.A.V.V., *Il lido illustrato. I manifest* (catalogo della mostra)
+
 
 ## Scaletta 2
 
@@ -290,3 +341,27 @@
 - Arrivé, Gadet, Galmiche, *La grammaire d'aujourd'hui*
 - Arrigoni, Della porta, Selva, *Manuale di biblioteconomia*
 - A.A.V.V., *Dictionnaire de la musique en France au XVII et XVIII siècles*
+- Mamy, *L'Allée de Mélisande*
+
+### Scaffale C
+- **LIBRI DA RESTITUIRE A GIACOMO**
+
+### Scaffale D
+- **RIVISTE DA BUTTARE**
+
+### Scaffale E
+- Maeder, *Programming in Mathematica*
+- Limes, *Piccola grande Europa n. 1 (2002)*
+- King, Knight, *Programmare il Motorola 68000*
+- Marion, *La fisica e l'universo fisico*
+- Borgogni, *Vecchia, cara mamma FEDIC*
+- A.A.V.V., *Cineclub, n. 38 (1998)*
+- A.A.V.V., *Cineclub, n. 39 (1998)*
+- A.A.V.V., *Cineclub, n. 40 (1998)*
+- Dominguez Narez, *Historia natural del olvido* (con dedica a Elena)
+- Bassetti, *La musica secondo Kubrik*
+- Gozzano, *Poesie*
+- A.A.V.V., *Il cinema ritrovato 2007. Cineteca del Comune di Bologna*
+- A.A.V.V., *Pier Paolo Pasolini. Poet of ashes (edited by Chiesi e Mancini)*
+- Lipschutz, *Collana Schaum. Teoria e problemi di topologia*
+- Bresci, Mehlman, Pellegrini e Stambler, *Chimica generale moderna*  

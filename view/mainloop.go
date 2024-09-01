@@ -44,9 +44,9 @@ func menu() {
 	menuHeader := pterm.HeaderPrinter{
 		TextStyle:       pterm.NewStyle(pterm.FgLightYellow, pterm.BgBlue),
 		BackgroundStyle: pterm.NewStyle(pterm.BgBlue),
-		Margin:          5,
+		Margin:          0,
 	}
-	menuHeader.Println("F1: Summary    F2: Update Pharmacy    F3: Update Prescriptions    F4: Add Medicine    F5: Refresh    ESC: Exit")
+	menuHeader.Println("F1: Summary    F2: Update Pharmacy    F3: Update Prescriptions    F4: Add Medicine Boxes    F5: Refresh    ESC: Exit")
 }
 
 func clear() {
