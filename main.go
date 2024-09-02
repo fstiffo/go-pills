@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/fstiffo/go-pills/control"
+	"github.com/fstiffo/go-pills/model"
 	"github.com/fstiffo/go-pills/view"
 )
 
@@ -16,8 +17,7 @@ func main() {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 	control.SetDB(db)
-	view.MainLoop()
-
 	// Migrate the schema and populate the database
-	// model.Populate(db)
+	model.Populate(control.GetDB())
+	view.MainLoop()
 }
