@@ -53,7 +53,7 @@ type Prescription struct {
 	RelatedATC string `gorm:"not null"`
 	// Dosage store active ingredient units prescibed x 1000 (e.g. 1 mg = 1000)
 	Dosage          int64 `gorm:"not null;check:dosage > 0"`
-	DosingFrequency int   `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosage frequency in days
+	DosingFrequency int   `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosing frequency in days
 	StartDate       sql.NullTime
 	EndDate         sql.NullTime
 	IntakeLogs      []IntakeLog
