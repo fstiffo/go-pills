@@ -7,10 +7,10 @@ import (
 )
 
 // Populate creates the tables in the database and populates them with the necessary data
-func Populate(db *gorm.DB) {
+func Populate(db *gorm.DB, reset bool) {
 
 	// Migrate the schema
-	if err := resetSchema(db); err != nil {
+	if err := resetSchema(db, reset); err != nil {
 		log.Fatalf("failed to reset schema: %v", err)
 	}
 
@@ -28,15 +28,26 @@ func Populate(db *gorm.DB) {
 	log.Println("Database populated")
 }
 
+// Migrate applies database migrations without dropping existing data.
+func Migrate(db *gorm.DB) error {
+	return resetSchema(db, false)
+}
+
 // resetSchema drops the tables in the database and migrates the schema
-func resetSchema(db *gorm.DB) error {
-	// Clear the database
-	if err := db.Migrator().DropTable(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}); err != nil {
-		return err
+func resetSchema(db *gorm.DB, reset bool) error {
+	tables := []interface{}{&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}}
+	if reset {
+		for _, t := range tables {
+			if db.Migrator().HasTable(t) {
+				if err := db.Migrator().DropTable(t); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	// Migrate the schema
-	if err := db.AutoMigrate(&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}); err != nil {
+	if err := db.AutoMigrate(tables...); err != nil {
 		return err
 	}
 	log.Println("Schema migrated")
