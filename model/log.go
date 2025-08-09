@@ -1,38 +1,33 @@
 package model
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 // LastRefresh returns the last time the logs were refreshed.
 func LastRefresh(db *gorm.DB) string {
 	var il IntakeLog
-	var sl StockLog
-	intakeErr := db.Model(&IntakeLog{}).
+	db.Model(&IntakeLog{}).
 		Order("consumed_at desc").
 		Select("consumed_at").
-		First(&il).Error
-	stockErr := db.Model(&StockLog{}).
+		Limit(1).
+		Find(&il)
+
+	var sl StockLog
+	db.Model(&StockLog{}).
 		Order("stocked_at desc").
 		Select("stocked_at").
-		First(&sl).Error
+		Limit(1).
+		Find(&sl)
 
-	var zero time.Time
+	t1 := il.ConsumedAt
+	t2 := sl.StockedAt
 
-	if intakeErr != nil {
-		il.ConsumedAt = zero
-	}
-	if stockErr != nil {
-		sl.StockedAt = zero
-	}
-
-	if il.ConsumedAt.IsZero() && sl.StockedAt.IsZero() {
+	if t1.IsZero() && t2.IsZero() {
 		return "Never"
 	}
-	if il.ConsumedAt.After(sl.StockedAt) {
-		return il.ConsumedAt.Format("2006-01-02 15:04:05")
+	if t1.After(t2) {
+		return t1.Format("2006-01-02 15:04:05")
 	}
-	return sl.StockedAt.Format("2006-01-02 15:04:05")
+	return t2.Format("2006-01-02 15:04:05")
 }
