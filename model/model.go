@@ -23,7 +23,7 @@ type ActiveIngredient struct {
 	ATC  string `gorm:"uniqueIndex;not null;size:7;check:length(ATC) = 7"`
 	// Stock stores units of active principle x 1000 (e.g. 1 mg = 1000)
 	Stock          int64 `gorm:"not null;default:0"`
-	Unit           Unit  `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'U', 'UI')"`
+	Unit           Unit  `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'UI')"`
 	LastConsumedAt sql.NullTime
 	LastStockedAt  sql.NullTime
 	Medicines      []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC"`
