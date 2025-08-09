@@ -1,1 +1,43 @@
 # go-pills
+
+## Project Goals
+- Track prescriptions and medicine stock from the command line.
+- Provide a quick summary of inventory and dosing needs.
+
+## Core Features
+- Interactive terminal UI for managing medicines and prescriptions.
+- Summary screen showing remaining stock and next doses.
+- Forms to update pharmacy stock and prescriptions.
+- Add new medicine boxes and refresh data at any time.
+
+## Build and Run
+```bash
+go run main.go
+```
+This starts the application using an embedded SQLite database (`pills.db`).
+
+## Keyboard Shortcuts
+| Key        | Action                  |
+|------------|-------------------------|
+| F1         | Show summary            |
+| F2         | Update pharmacy stock   |
+| F3         | Update prescriptions    |
+| F4         | Add medicine boxes      |
+| F5         | Refresh summary         |
+| ESC/Ctrl+C | Exit application        |
+
+## Data Model Overview
+- **ActiveIngredient** – identified by an ATC code, tracks stock and units.
+- **Medicine** – references an active ingredient, dosage, and packaging.
+- **Prescription** – dosage and frequency for an active ingredient.
+- **StockLog** and **IntakeLog** – audit stocking events and consumption.
+
+## Roadmap
+- Export reports and summaries.
+- Support for multiple users and profiles.
+- Enhanced validation and logging.
+
+## Contributing
+1. Fork the repository and create a feature branch.
+2. Run `go fmt` and `go test ./...` before submitting.
+3. Open a pull request describing your changes.
