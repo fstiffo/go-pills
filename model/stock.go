@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -48,139 +47,70 @@ func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64, reset 
 
 // UpdateStockedUnitsFromIntake updates the stocked units of an active ingredient based on prescription intake.
 func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
-	var activePrescriptions []Prescription
 	now := time.Now()
+	var prescriptions []Prescription
 
-	// Find active prescriptions for the given active ingredient
+	// Find all prescriptions for the given active ingredient that could have been active
 	if err := db.Where("related_atc = ?", ai.ATC).
 		Where("start_date <= ?", now).
-		Where("end_date IS NULL OR end_date > ?", now).
-		Find(&activePrescriptions).Error; err != nil {
+		Order("start_date asc").
+		Find(&prescriptions).Error; err != nil {
 		return err
 	}
 
-	// If there are no active prescriptions, there's nothing to do.
-	if len(activePrescriptions) == 0 {
-		return nil
+	if len(prescriptions) == 0 {
+		// If there are no prescriptions, we might still need to update the time to now
+		// to prevent re-running on an empty set.
+		return db.Model(ai).Update("last_intake_update", now).Error
 	}
 
-	// Determine the start date for consumption calculation.
-	var startDate time.Time
-	if ai.LastIntakeUpdate.Valid {
-		startDate = ai.LastIntakeUpdate.Time
-	} else {
-		// If LastIntakeUpdate is not set, use the earliest start date from active prescriptions.
-		if len(activePrescriptions) > 0 {
-			startDate = activePrescriptions[0].StartDate.Time
-			for _, p := range activePrescriptions {
-				if p.StartDate.Time.Before(startDate) {
-					startDate = p.StartDate.Time
-				}
-			}
-		} else {
-			// Should not happen due to the check above, but as a safeguard.
-			return nil
-		}
+	calculationStart := ai.LastIntakeUpdate.Time
+	if !ai.LastIntakeUpdate.Valid {
+		// Per user feedback, if LastIntakeUpdate is null, it has to be considered as Time Zero.
+		calculationStart = time.Time{}
 	}
 
-	// Get the IDs of the active prescriptions
-	var prescriptionIDs []uint
-	for _, p := range activePrescriptions {
-		prescriptionIDs = append(prescriptionIDs, p.ID)
-	}
-
-	// Find all prescription logs for the active prescriptions between the start date and now.
-	var logs []PrescriptionLog
-	if err := db.Where("prescription_id IN ?", prescriptionIDs).
-		Where("updated_at BETWEEN ? AND ?", startDate, now).
-		Order("updated_at ASC").
-		Find(&logs).Error; err != nil {
-		return err
-	}
-
-	// prescriptionState stores the dosage and frequency for each prescription ID. It's initialized
-	// with the state at startDate and then updated as we process logs.
-	prescriptionState := make(map[uint]Prescription)
-	for _, p := range activePrescriptions {
-		pCopy := p // Start with current values as a fallback.
-
-		var lastLogBeforeStart PrescriptionLog
-		err := db.Where("prescription_id = ? AND updated_at <= ?", p.ID, startDate).
-			Order("updated_at DESC").
-			First(&lastLogBeforeStart).Error
-
-		if err == nil {
-			// Found a log entry that defines the state at startDate
-			pCopy.Dosage = lastLogBeforeStart.Dosage
-			pCopy.DosingFrequency = lastLogBeforeStart.DosingFrequency
-		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return err // Real DB error
-		}
-		// If no log is found before startDate, we assume the prescription's
-		// current values have been valid since its creation.
-
-		prescriptionState[p.ID] = pCopy
-	}
+	// Truncate times to the beginning of the day for accurate day-by-day calculation
+	calculationStart = time.Date(calculationStart.Year(), calculationStart.Month(), calculationStart.Day(), 0, 0, 0, 0, calculationStart.Location())
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 	var totalConsumption int64
-	lastEventTime := startDate
 
-	// Process each log entry as a point in time where dosage might have changed.
-	for _, log := range logs {
-		// Calculate consumption from lastEventTime to the time of the log.
-		segmentDuration := log.UpdatedAt.Sub(lastEventTime)
-		days := int(segmentDuration.Hours() / 24)
+	// Iterate from calculationStart up to (but not including) today
+	for d := calculationStart; d.Before(today); d = d.Add(24 * time.Hour) {
+		var dailyConsumption int64
+		// Find the prescription active on day `d`
+		for _, p := range prescriptions {
+			if !p.StartDate.Valid {
+				continue
+			}
 
-		if days > 0 {
-			// Find the total daily dosage for this period.
-			var segmentConsumption int64
-			for _, p := range activePrescriptions {
-				// Consider only prescriptions active in this segment
-				if p.StartDate.Time.Before(log.UpdatedAt) && (p.EndDate.Time.IsZero() || p.EndDate.Time.After(lastEventTime)) {
-					state := prescriptionState[p.ID]
-					if state.DosingFrequency > 0 {
-						dosesInSegment := int64(days / state.DosingFrequency)
-						segmentConsumption += dosesInSegment * state.Dosage
-					}
+			startDate := time.Date(p.StartDate.Time.Year(), p.StartDate.Time.Month(), p.StartDate.Time.Day(), 0, 0, 0, 0, p.StartDate.Time.Location())
+
+			endDate := today.Add(24 * time.Hour) // Default to tomorrow if no end date
+			if p.EndDate.Valid {
+				endDate = time.Date(p.EndDate.Time.Year(), p.EndDate.Time.Month(), p.EndDate.Time.Day(), 0, 0, 0, 0, p.EndDate.Time.Location())
+			}
+
+			// Check if day `d` is within the prescription's active period
+			if (d.Equal(startDate) || d.After(startDate)) && d.Before(endDate) {
+				// Check if it's a dosing day
+				daysSinceStart := int(d.Sub(startDate).Hours() / 24)
+				if p.DosingFrequency > 0 && daysSinceStart%p.DosingFrequency == 0 {
+					dailyConsumption += p.Dosage
 				}
 			}
-			totalConsumption += segmentConsumption
 		}
-
-		// Update the state of the prescription based on the log.
-		if p, ok := prescriptionState[log.PrescriptionID]; ok {
-			p.Dosage = log.Dosage
-			p.DosingFrequency = log.DosingFrequency
-			prescriptionState[log.PrescriptionID] = p
-		}
-
-		lastEventTime = log.UpdatedAt
+		totalConsumption += dailyConsumption
 	}
 
-	// Calculate consumption from the last log entry to now.
-	segmentDuration := now.Sub(lastEventTime)
-	days := int(segmentDuration.Hours() / 24)
-
-	if days > 0 {
-		var segmentConsumption int64
-		for _, p := range activePrescriptions {
-			state := prescriptionState[p.ID]
-			if state.DosingFrequency > 0 {
-				dosesInSegment := int64(days / state.DosingFrequency)
-				segmentConsumption += dosesInSegment * state.Dosage
-			}
-		}
-		totalConsumption += segmentConsumption
-	}
-
-	// Update the active ingredient's stock and last intake update time.
 	if totalConsumption > 0 {
-		return db.Model(ai).
-			Updates(map[string]interface{}{
-				"stocked_units":      gorm.Expr("stocked_units - ?", totalConsumption),
-				"last_intake_update": now,
-			}).Error
+		return db.Model(ai).Updates(map[string]interface{}{
+			"stocked_units":      gorm.Expr("stocked_units - ?", totalConsumption),
+			"last_intake_update": now,
+		}).Error
 	}
 
-	return nil
+	// Always update the timestamp to avoid recalculating the same period
+	return db.Model(ai).Update("last_intake_update", now).Error
 }

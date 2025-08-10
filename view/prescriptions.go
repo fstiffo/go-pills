@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/fstiffo/go-pills/control"
@@ -25,6 +26,7 @@ func updatePrescriptionsScreen() {
 	if atc == "" {
 		return
 	}
+	atc = strings.ToUpper(atc)
 
 	// Gather prescription details
 	pterm.Println("Enter dosage (units x1000):")
@@ -45,7 +47,7 @@ func updatePrescriptionsScreen() {
 		}
 	}
 
-	if err := model.InsertPrescription(control.GetDB(), atc, dosage, freq, start); err != nil {
+	if err := model.UpsertPrescription(control.GetDB(), atc, dosage, freq, start); err != nil {
 		pterm.Error.Println(err)
 		return
 	}

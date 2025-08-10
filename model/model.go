@@ -55,15 +55,6 @@ type Prescription struct {
 	EndDate         sql.NullTime // End date of validity (A prescription is not more considered after the end date of validity)
 }
 
-// PrescriptionLog represents a log of an update to a prescription.
-type PrescriptionLog struct {
-	gorm.Model
-	PrescriptionID  uint      `gorm:"index;not null"`
-	UpdatedAt       time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
-	Dosage          int64     `gorm:"not null;check:dosage > 0"`                      // Active ingredient units prescribed x 1000 (e.g., 1 mg = 1000)
-	DosingFrequency int       `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosing frequency in days
-}
-
 // StockLog represents a single stocking log of an active ingredient.
 type StockLog struct {
 	gorm.Model

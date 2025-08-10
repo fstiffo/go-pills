@@ -62,29 +62,51 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 	return tableData
 }
 
-// InsertPrescription inserts a new prescription and closes any previous one without an end date.
-func InsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFrequency int, start time.Time) error {
-	p := Prescription{
-		RelatedATC:      relatedATC,
-		Dosage:          dosage,
-		DosingFrequency: dosingFrequency,
-		StartDate:       sql.NullTime{Time: start, Valid: true},
+// UpsertPrescription inserts or updates a prescription and updates the stock.
+func UpsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFrequency int, start time.Time) error {
+	if start.After(time.Now()) {
+		return errors.New("start date cannot be in the future")
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		// Close a previous prescription without an end date for the same ATC
-		var prev Prescription
-		err := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&prev).Error
+		var ai ActiveIngredient
+		if err := tx.Where("atc = ?", relatedATC).First(&ai).Error; err != nil {
+			return fmt.Errorf("active ingredient with ATC %s not found", relatedATC)
+		}
+
+		if ai.LastIntakeUpdate.Valid && start.Before(ai.LastIntakeUpdate.Time) {
+			return fmt.Errorf("start date (%v) must be after last intake update (%v)", start, ai.LastIntakeUpdate.Time)
+		}
+
+		// End the previous prescription if it exists
+		var existingPrescription Prescription
+		err := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&existingPrescription).Error
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 		if err == nil {
-			prev.EndDate = sql.NullTime{Time: start, Valid: true}
-			if err := tx.Save(&prev).Error; err != nil {
+			existingPrescription.EndDate = sql.NullTime{Time: start, Valid: true}
+			if err := tx.Save(&existingPrescription).Error; err != nil {
 				return err
 			}
 		}
 
-		return tx.Create(&p).Error
+		// Create the new prescription
+		newPrescription := Prescription{
+			RelatedATC:      relatedATC,
+			Dosage:          dosage,
+			DosingFrequency: dosingFrequency,
+			StartDate:       sql.NullTime{Time: start, Valid: true},
+		}
+		if err := tx.Create(&newPrescription).Error; err != nil {
+			return err
+		}
+
+		// With the correct prescription history now in the DB, update the stock.
+		if err := UpdateStockedUnitsFromIntake(tx, &ai); err != nil {
+			return fmt.Errorf("failed to update stock after upsert: %w", err)
+		}
+
+		return nil
 	})
 }
