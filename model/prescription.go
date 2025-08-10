@@ -15,18 +15,18 @@ import (
 // GetPrescriptionsSummary returns a summary of all prescriptions
 func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 	tableData := pterm.TableData{
-		{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last consumed", "Last stocked", "Stock in days"}}
+		{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"}}
 	type prescription struct {
 		Prescription
-		Name           string
-		Unit           string
-		Stock          int64
-		LastConsumedAt sql.NullTime
-		LastStockedAt  sql.NullTime
+		Name             string
+		Unit             string
+		StockedUnits     int64
+		LastIntakeUpdate sql.NullTime
+		LastStockUpdate  sql.NullTime
 	}
 	var ps []prescription
 	result := db.Model(&Prescription{}).
-		Select("prescriptions.*, ai.name, ai.unit, ai.stock, ai.last_consumed_at, ai.last_stocked_at").
+		Select("prescriptions.*, ai.name, ai.unit, ai.stocked_units, ai.last_intake_update, ai.last_stock_update").
 		Joins("JOIN active_ingredients ai ON ai.atc = prescriptions.related_atc").
 		Scan(&ps)
 	if result.Error != nil {
@@ -47,16 +47,16 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		if p.StartDate.Valid {
 			validFrom = p.StartDate.Time.Format(`2006-01-02`)
 		}
-		lastConsumed := "-"
-		if p.LastConsumedAt.Valid {
-			lastConsumed = p.LastConsumedAt.Time.Format("2006-01-02")
+		lastIntake := "-"
+		if p.LastIntakeUpdate.Valid {
+			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
 		}
-		lastStocked := "-"
-		if p.LastStockedAt.Valid {
-			lastStocked = p.LastStockedAt.Time.Format("2006-01-02")
+		lastStock := "-"
+		if p.LastStockUpdate.Valid {
+			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
 		}
-		stockInDays := strconv.FormatInt(p.Stock/int64(p.Dosage)*int64(p.DosingFrequency), 10)
-		tableData = append(tableData, []string{atc, name, dosage, frequency, validFrom, lastConsumed, lastStocked, stockInDays})
+		stockInDays := strconv.FormatInt(p.StockedUnits/int64(p.Dosage)*int64(p.DosingFrequency), 10)
+		tableData = append(tableData, []string{atc, name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
 	}
 
 	return tableData

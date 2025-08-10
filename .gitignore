@@ -16,3 +16,7 @@
 
 # Data files
 *.db
+/.idea/.gitignore
+/.idea/go-pills.iml
+/.idea/modules.xml
+/.idea/vcs.xml
