@@ -9,7 +9,7 @@ import (
 
 // WaitForCommand waits for a command from the user
 func WaitForCommand() error {
-	input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command:")
+	input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command")
 
 	if err != nil {
 		return err

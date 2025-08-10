@@ -33,7 +33,11 @@ func updatePharmacyScreen() {
 	}
 
 	for {
-		selected, _ := pterm.DefaultInteractiveSelect.WithOptions(options).Show()
+		selected, _ := pterm.
+			DefaultInteractiveSelect.
+			WithOptions(options).
+			WithMaxHeight(len(options)).
+			Show()
 		if selected == backOption {
 			break
 		}
@@ -68,7 +72,7 @@ func updatePharmacyScreen() {
 		}
 		pterm.Success.Printf("Added %d boxes of %s", boxes, med.Name)
 
-		cont, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).Show("Add more?")
+		cont, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).Show("\nAdd more?")
 		if !cont {
 			break
 		}

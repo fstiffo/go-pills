@@ -48,7 +48,7 @@ func introScreen() {
 func menu() {
 	pterm.
 		NewStyle(pterm.FgLightYellow, pterm.BgBlue).
-		Println("[(S)ummary] [Update (P)harmacy] [Update P(r)escriptions] [(A)dd Medicine Boxes] [Re(f)resh] [(Q)uit]")
+		Println("[(S)ummary] [Update (P)harmacy] [Update P(R)escriptions] [(A)dd Medicine Boxes] [Re(F)resh] [(Q)uit]")
 }
 
 func clearScreen() {
