@@ -72,7 +72,7 @@ func InsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFreq
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		// Close previous prescription without end date for the same ATC
+		// Close a previous prescription without an end date for the same ATC
 		var prev Prescription
 		err := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&prev).Error
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

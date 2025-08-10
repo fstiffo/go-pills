@@ -61,12 +61,16 @@ func updatePharmacyScreen() {
 			continue
 		}
 
+		reset, _ := pterm.DefaultInteractiveConfirm.
+			WithDefaultValue(false).
+			Show("Is this the first time you are adding stock for this active ingredient?")
+
 		units, err := model.CreateStockLog(db, med, boxes)
 		if err != nil {
 			pterm.Error.Printf("failed to create stock log: %v\n", err)
 			continue
 		}
-		if err := model.IncrementActiveIngredientStock(db, med.RelatedATC, units); err != nil {
+		if err := model.IncrementActiveIngredientStock(db, med.RelatedATC, units, reset); err != nil {
 			pterm.Error.Printf("failed to update stock log: %v\n", err)
 			continue
 		}

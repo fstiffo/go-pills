@@ -24,13 +24,26 @@ func CreateStockLog(db *gorm.DB, med Medicine, boxes int) (int64, error) {
 }
 
 // IncrementActiveIngredientStock increments stocked units and updates the last stock update time for an active ingredient.
-func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64) error {
-	return db.Model(&ActiveIngredient{}).
-		Where("atc = ?", atc).
-		Updates(map[string]any{
-			"stocked_units":     gorm.Expr("stocked_units + ?", units),
-			"last_stock_update": time.Now(),
-		}).Error
+func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64, reset bool) error {
+	var err error
+	if reset {
+		err = db.Model(&ActiveIngredient{}).
+			Where("atc = ?", atc).
+			Updates(map[string]any{
+				"stocked_units":        units,
+				"last_intake_update":   time.Now(),
+				"last_stock_update":    time.Now(),
+				"manual_stock_updater": true,
+			}).Error
+	} else {
+		err = db.Model(&ActiveIngredient{}).
+			Where("atc = ?", atc).
+			Updates(map[string]any{
+				"stocked_units":     gorm.Expr("stocked_units + ?", units),
+				"last_stock_update": time.Now(),
+			}).Error
+	}
+	return err
 }
 
 // UpdateStockedUnitsFromIntake updates the stocked units of an active ingredient based on prescription intake.
