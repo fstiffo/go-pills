@@ -22,12 +22,12 @@ func CreateStockLog(db *gorm.DB, med Medicine, boxes int) (int64, error) {
 	return units, nil
 }
 
-// IncrementActiveIngredientStock increments stock and updates last stocked time for an active ingredient.
+// IncrementActiveIngredientStock increments stocked units and updates the last stock update time for an active ingredient.
 func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64) error {
 	return db.Model(&ActiveIngredient{}).
 		Where("atc = ?", atc).
 		Updates(map[string]any{
-			"stock":           gorm.Expr("stock + ?", units),
-			"last_stocked_at": time.Now(),
+			"stocked_units":     gorm.Expr("stocked_units + ?", units),
+			"last_stock_update": time.Now(),
 		}).Error
 }

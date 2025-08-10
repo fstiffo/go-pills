@@ -11,7 +11,7 @@ import (
 )
 
 func addMedicineScreen() {
-	clear()
+	clearScreen()
 	pterm.DefaultHeader.WithFullWidth().Println("ADD MEDICINE")
 
 	db := control.GetDB()

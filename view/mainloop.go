@@ -21,6 +21,8 @@ func MainLoop() {
 			updatePrescriptionsScreen()
 		case control.AddMedicineScreen:
 			addMedicineScreen()
+		default:
+			panic("unhandled default case")
 		}
 		menu()
 		if err := control.WaitForCommand(); err != nil {
@@ -30,14 +32,17 @@ func MainLoop() {
 }
 
 func introScreen() {
-	clear()
+	clearScreen()
 	pillsLogo, _ := pterm.DefaultBigText.WithLetters(
 		putils.LettersFromStringWithStyle("PILLS", pterm.NewStyle(pterm.FgBlue))).Srender()
 
 	pterm.DefaultCenter.Print(pillsLogo)
 	pterm.DefaultCenter.Println("Quickly take control of your supply of pills")
 	pterm.DefaultCenter.Println("(Press ENTER to continue)")
-	fmt.Scanln()
+	_, err := fmt.Scanln()
+	if err != nil {
+		return
+	}
 }
 
 func menu() {
@@ -49,6 +54,6 @@ func menu() {
 	menuHeader.Println(" F1: Summary   F2: Update Pharmacy   F3: Update Prescriptions   F4: Add Medicine Boxes   F5: Refresh   ESC: Exit ")
 }
 
-func clear() {
+func clearScreen() {
 	fmt.Print("\033[H\033[2J")
 }

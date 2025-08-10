@@ -10,7 +10,7 @@ import (
 )
 
 func updatePrescriptionsScreen() {
-	clear()
+	clearScreen()
 	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PRESCRIPTIONS")
 
 	// List current prescriptions
@@ -21,7 +21,7 @@ func updatePrescriptionsScreen() {
 	// Ask for ATC code to add or update
 	pterm.Println("\nEnter ATC code to add/update (blank to cancel):")
 	var atc string
-	fmt.Scanln(&atc)
+	_, _ = fmt.Scanln(&atc)
 	if atc == "" {
 		return
 	}
@@ -29,15 +29,15 @@ func updatePrescriptionsScreen() {
 	// Gather prescription details
 	pterm.Println("Enter dosage (units x1000):")
 	var dosage int64
-	fmt.Scanln(&dosage)
+	_, _ = fmt.Scanln(&dosage)
 
 	pterm.Println("Enter dosing frequency in days:")
 	var freq int
-	fmt.Scanln(&freq)
+	_, _ = fmt.Scanln(&freq)
 
 	pterm.Println("Enter start date (YYYY-MM-DD, blank for today):")
 	var startStr string
-	fmt.Scanln(&startStr)
+	_, _ = fmt.Scanln(&startStr)
 	start := time.Now()
 	if startStr != "" {
 		if t, err := time.Parse("2006-01-02", startStr); err == nil {
@@ -55,5 +55,5 @@ func updatePrescriptionsScreen() {
 	// Show updated prescription and stock projections
 	pterm.Println("\nUpdated prescription:")
 	tableData = model.GetPrescriptionsSummary(control.GetDB())
-	pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 }

@@ -24,7 +24,7 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		LastConsumedAt sql.NullTime
 		LastStockedAt  sql.NullTime
 	}
-	ps := []prescription{}
+	var ps []prescription
 	result := db.Model(&Prescription{}).
 		Select("prescriptions.*, ai.name, ai.unit, ai.stock, ai.last_consumed_at, ai.last_stocked_at").
 		Joins("JOIN active_ingredients ai ON ai.atc = prescriptions.related_atc").
@@ -45,7 +45,7 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
 		validFrom := "-"
 		if p.StartDate.Valid {
-			validFrom = p.StartDate.Time.Format("2006-01-02")
+			validFrom = p.StartDate.Time.Format(`2006-01-02`)
 		}
 		lastConsumed := "-"
 		if p.LastConsumedAt.Valid {

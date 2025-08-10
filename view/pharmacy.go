@@ -11,7 +11,7 @@ import (
 const backOption = "__BACK__"
 
 func updatePharmacyScreen() {
-	clear()
+	clearScreen()
 	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PHARMACY")
 
 	db := control.GetDB()
@@ -26,7 +26,7 @@ func updatePharmacyScreen() {
 		return
 	}
 
-	options := []string{}
+	var options []string
 	options = append(options, backOption)
 	for _, m := range medicines {
 		options = append(options, m.Name)
