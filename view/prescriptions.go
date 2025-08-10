@@ -3,11 +3,13 @@ package view
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
+	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
 )
@@ -18,7 +20,8 @@ func updatePrescriptionsScreen() {
 
 	// List current prescriptions
 	pterm.Println("\nCurrent prescriptions:")
-	tableData := model.GetPrescriptionsSummary(control.GetDB())
+	summaries := model.GetPrescriptionsSummary(control.GetDB())
+	tableData := prescriptionSummaryTableData(summaries)
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 
 	// Ask for ATC code to add or update
@@ -30,8 +33,8 @@ func updatePrescriptionsScreen() {
 	}
 	atc = strings.ToUpper(atc)
 
-	if len(atc) != 7 {
-		pterm.Error.Println("Invalid ATC code: must be 7 characters long")
+	if err := validation.ValidateAIC(atc); err != nil {
+		pterm.Error.Println(err)
 		return
 	}
 
@@ -64,6 +67,10 @@ func updatePrescriptionsScreen() {
 	pterm.Println("Enter dosage (units x1000):")
 	var dosage int64
 	_, _ = fmt.Scanln(&dosage)
+	if err := validation.ValidateDosage(dosage); err != nil {
+		pterm.Error.Println(err)
+		return
+	}
 
 	pterm.Println("Enter dosing frequency in days:")
 	var freq int
@@ -88,6 +95,36 @@ func updatePrescriptionsScreen() {
 
 	// Show updated prescription and stock projections
 	pterm.Println("\nUpdated prescription:")
-	tableData = model.GetPrescriptionsSummary(control.GetDB())
+	summaries = model.GetPrescriptionsSummary(control.GetDB())
+	tableData = prescriptionSummaryTableData(summaries)
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+}
+
+func prescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableData {
+	tableData := pterm.TableData{
+		{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"},
+	}
+	for _, p := range ps {
+		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
+		dayOrDays := " day"
+		if p.DosingFrequency > 1 {
+			dayOrDays = " days"
+		}
+		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		validFrom := "-"
+		if p.StartDate.Valid {
+			validFrom = p.StartDate.Time.Format("2006-01-02")
+		}
+		lastIntake := "-"
+		if p.LastIntakeUpdate.Valid {
+			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
+		}
+		lastStock := "-"
+		if p.LastStockUpdate.Valid {
+			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+		}
+		stockInDays := strconv.FormatInt(p.StockInDays, 10)
+		tableData = append(tableData, []string{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
+	}
+	return tableData
 }

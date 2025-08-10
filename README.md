@@ -16,15 +16,15 @@ go run main.go
 ```
 This starts the application using an embedded SQLite database (`pills.db`).
 
-## Keyboard Shortcuts
-| Key        | Action                  |
-|------------|-------------------------|
-| F1         | Show summary            |
-| F2         | Update pharmacy stock   |
-| F3         | Update prescriptions    |
-| F4         | Add medicine boxes      |
-| F5         | Refresh summary         |
-| ESC/Ctrl+C | Exit application        |
+## Text Commands
+Commands are entered by typing a letter and pressing Enter rather than using function keys.
+
+- `(S)ummary` – show remaining stock and next doses.
+- `(P)harmacy` – update pharmacy stock.
+- `(R)escriptions` – update prescriptions.
+- `(A)dd` – add medicine boxes.
+- `(F)resh` – refresh summary.
+- `(Q)uit` – exit the application.
 
 ## Data Model Overview
 - **ActiveIngredient** – identified by an ATC code, tracks stock and units.

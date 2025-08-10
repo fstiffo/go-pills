@@ -22,7 +22,8 @@ func MainLoop() {
 		case control.AddMedicineScreen:
 			addMedicineScreen()
 		default:
-			panic("unhandled default case")
+			pterm.Error.Println("unhandled default case in main loop")
+			summaryScreen()
 		}
 		menu()
 		if err := control.WaitForCommand(); err != nil {

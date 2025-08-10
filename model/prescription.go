@@ -5,17 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	"github.com/pterm/pterm"
 	"gorm.io/gorm"
 )
 
+// PrescriptionSummary contains prescription data for presentation
+type PrescriptionSummary struct {
+	ATC              string
+	Name             string
+	Unit             string
+	Dosage           int64
+	DosingFrequency  int
+	StartDate        sql.NullTime
+	LastIntakeUpdate sql.NullTime
+	LastStockUpdate  sql.NullTime
+	StockInDays      int64
+}
+
 // GetPrescriptionsSummary returns a summary of all prescriptions
-func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
-	tableData := pterm.TableData{
-		{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"}}
+func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 	type prescription struct {
 		Prescription
 		Name             string
@@ -33,33 +42,23 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		log.Fatalf("failed to get prescriptions: %v", result.Error)
 	}
 
+	var summaries []PrescriptionSummary
 	for _, p := range ps {
-		atc := p.RelatedATC
-		name := p.Name
-		unit := p.Unit
-		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, unit)
-		dayOrDays := " day"
-		if p.DosingFrequency > 1 {
-			dayOrDays = " days"
-		}
-		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
-		validFrom := "-"
-		if p.StartDate.Valid {
-			validFrom = p.StartDate.Time.Format(`2006-01-02`)
-		}
-		lastIntake := "-"
-		if p.LastIntakeUpdate.Valid {
-			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
-		}
-		lastStock := "-"
-		if p.LastStockUpdate.Valid {
-			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
-		}
-		stockInDays := strconv.FormatInt(p.StockedUnits*int64(p.DosingFrequency)/p.Dosage, 10)
-		tableData = append(tableData, []string{atc, name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
+		stockInDays := p.StockedUnits * int64(p.DosingFrequency) / p.Dosage
+		summaries = append(summaries, PrescriptionSummary{
+			ATC:              p.RelatedATC,
+			Name:             p.Name,
+			Unit:             p.Unit,
+			Dosage:           p.Dosage,
+			DosingFrequency:  p.DosingFrequency,
+			StartDate:        p.StartDate,
+			LastIntakeUpdate: p.LastIntakeUpdate,
+			LastStockUpdate:  p.LastStockUpdate,
+			StockInDays:      stockInDays,
+		})
 	}
 
-	return tableData
+	return summaries
 }
 
 // UpsertPrescription inserts or updates a prescription and updates the stock.
@@ -80,11 +79,11 @@ func UpsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFreq
 
 		// End the previous prescription if it exists
 		var existingPrescription Prescription
-		err := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&existingPrescription).Error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			return err
+		prescriptionErr := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&existingPrescription).Error
+		if prescriptionErr != nil && !errors.Is(prescriptionErr, gorm.ErrRecordNotFound) {
+			return prescriptionErr
 		}
-		if err == nil {
+		if prescriptionErr == nil {
 			existingPrescription.EndDate = sql.NullTime{Time: start, Valid: true}
 			if err := tx.Save(&existingPrescription).Error; err != nil {
 				return err

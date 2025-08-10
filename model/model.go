@@ -19,16 +19,16 @@ const (
 // ActiveIngredient represents an active ingredient in a medicine or in a prescription.
 type ActiveIngredient struct {
 	gorm.Model
-	Name               string         `gorm:"unique;not null"`
+	Name               string         `gorm:"unique;not null;size:100"`
 	ATC                string         `gorm:"uniqueIndex;not null;size:7;check:length(ATC) = 7"`
-	StockedUnits       int64          `gorm:"not null;default:0"` // Stocked units of active principle x 1000 (e.g., 1 mg = 1000)
+	StockedUnits       int64          `gorm:"not null;default:0;check:stocked_units >= 0"` // Stocked units of active principle x 1000 (e.g., 1 mg = 1000)
 	Unit               Unit           `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'UI')"`
 	LastIntakeUpdate   sql.NullTime   // Last date when StockedUnits where update considering regular intake on the base of active prescriptions
 	LastStockUpdate    sql.NullTime   // Last date when StockedUnits where update for restocking
 	ManualStockUpdater bool           `gorm:"not null;default:false"` // If true, the last stock update was manual
-	Medicines          []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC"`
-	Prescriptions      []Prescription `gorm:"foreignKey:RelatedATC;references:ATC"`
-	StockLogs          []StockLog     `gorm:"foreignKey:RelatedATC;references:ATC"`
+	Medicines          []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Prescriptions      []Prescription `gorm:"foreignKey:RelatedATC;references:ATC;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	StockLogs          []StockLog     `gorm:"foreignKey:RelatedATC;references:ATC;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 }
 
 // Medicine represents a medicine that can be purchased.

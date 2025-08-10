@@ -1,6 +1,7 @@
 package control
 
 import (
+	"fmt"
 	"github.com/fstiffo/go-pills/model"
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
@@ -71,11 +72,17 @@ func RefreshData() error {
 		return err
 	}
 
+	var errs []error
 	for i := range activeIngredients {
 		if err := model.UpdateStockedUnitsFromIntake(appState.db, &activeIngredients[i]); err != nil {
 			// It's better to log the error and continue with the next active ingredient.
 			pterm.Error.Printf("Failed to update stock for %s: %v\n", activeIngredients[i].Name, err)
+			errs = append(errs, err)
 		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to update stock for %d ingredients", len(errs))
 	}
 
 	return nil

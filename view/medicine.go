@@ -2,10 +2,12 @@ package view
 
 import (
 	"errors"
+	"math"
 	"strconv"
 
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
+	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
 )
@@ -25,14 +27,14 @@ func addMedicineScreen() {
 	mah, _ := pterm.DefaultInteractiveTextInput.Show("Marketing authorisation holder")
 
 	aic, _ := pterm.DefaultInteractiveTextInput.Show("AIC code")
-	if aic == "" {
-		pterm.Warning.Println("AIC code cannot be empty")
+	if err := validation.ValidateAIC(aic); err != nil {
+		pterm.Warning.Println(err)
 		return
 	}
 
 	atc, _ := pterm.DefaultInteractiveTextInput.Show("ATC code")
-	if atc == "" {
-		pterm.Warning.Println("ATC code cannot be empty")
+	if err := validation.ValidateATC(atc); err != nil {
+		pterm.Warning.Println(err)
 		return
 	}
 
@@ -63,7 +65,7 @@ func addMedicineScreen() {
 		pterm.Warning.Println("Invalid dosage")
 		return
 	}
-	dosage := int64(dosageF * 1000)
+	dosage := int64(math.Round(dosageF * 1000))
 
 	packageStr, _ := pterm.DefaultInteractiveTextInput.Show("Package")
 	form, _ := pterm.DefaultInteractiveTextInput.Show("Form")

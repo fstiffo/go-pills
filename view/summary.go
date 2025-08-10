@@ -11,7 +11,8 @@ func summaryScreen() {
 	pterm.DefaultHeader.WithFullWidth().Println("SUMMARY")
 	pterm.Println("\nPrescriptions:")
 
-	tableData := model.GetPrescriptionsSummary(control.GetDB())
+	summaries := model.GetPrescriptionsSummary(control.GetDB())
+	tableData := prescriptionSummaryTableData(summaries)
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 	// pterm.Println("\nLast logs refresh: ", model.LastRefresh(control.GetDB()))
 }

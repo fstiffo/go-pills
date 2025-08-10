@@ -9,33 +9,34 @@ import (
 
 // WaitForCommand waits for a command from the user
 func WaitForCommand() error {
-	input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command")
+	for {
+		input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command")
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	command := strings.ToLower(strings.TrimSpace(input))
-	if len(command) == 0 {
-		return nil
-	}
+		command := strings.ToLower(strings.TrimSpace(input))
+		if len(command) == 0 {
+			continue
+		}
 
-	switch command[0] {
-	case 's':
-		return handleCommand(Summary)
-	case 'p':
-		return handleCommand(UpdatePharmacy)
-	case 'r':
-		return handleCommand(UpdatePrescription)
-	case 'a':
-		return handleCommand(AddMedicine)
-	case 'f':
-		return handleCommand(Refresh)
-	case 'q':
-		return handleCommand(Exit)
-	default:
-		pterm.Warning.Println("Invalid command")
-		return WaitForCommand()
+		switch command[0] {
+		case 's':
+			return handleCommand(Summary)
+		case 'p':
+			return handleCommand(UpdatePharmacy)
+		case 'r':
+			return handleCommand(UpdatePrescription)
+		case 'a':
+			return handleCommand(AddMedicine)
+		case 'f':
+			return handleCommand(Refresh)
+		case 'q':
+			return handleCommand(Exit)
+		default:
+			pterm.Warning.Println("Invalid command")
+		}
 	}
 }
 
