@@ -1,6 +1,7 @@
 package view
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
 	"github.com/pterm/pterm"
+	"gorm.io/gorm"
 )
 
 func updatePrescriptionsScreen() {
@@ -27,6 +29,36 @@ func updatePrescriptionsScreen() {
 		return
 	}
 	atc = strings.ToUpper(atc)
+
+	if len(atc) != 7 {
+		pterm.Error.Println("Invalid ATC code: must be 7 characters long")
+		return
+	}
+
+	// Check if the active ingredient exists
+	_, err := model.GetActiveIngredientByATC(control.GetDB(), atc)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			pterm.Warning.Printf("Active ingredient with ATC %s not found. Let's add it.\n", atc)
+			name, _ := pterm.DefaultInteractiveTextInput.Show("Enter active ingredient name")
+			unitStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter unit (mg, ml, UI)")
+			unit := model.Unit(unitStr)
+
+			newAI := &model.ActiveIngredient{
+				Name: name,
+				ATC:  atc,
+				Unit: unit,
+			}
+			if err := model.InsertActiveIngredient(control.GetDB(), newAI); err != nil {
+				pterm.Error.Println(err)
+				return
+			}
+			pterm.Success.Printf("Active ingredient %s added.\n", name)
+		} else {
+			pterm.Error.Println(err)
+			return
+		}
+	}
 
 	// Gather prescription details
 	pterm.Println("Enter dosage (units x1000):")
