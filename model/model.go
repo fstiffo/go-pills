@@ -37,7 +37,7 @@ type Medicine struct {
 	MAH        string
 	RelatedATC string `gorm:"not null"`
 	AIC        string `gorm:"unique;not null;size: 9;check:length(AIC) = 9"`
-	Dosage     int64  `gorm:"not null;check:dosage > 0"` // Dosage stores units of active ingredient for each unit of medicine x 1000 (e.g., 1 mg = 1000)
+	Dosage     int64  `gorm:"not null;check:dosage > 0"` // Active ingredient units prescribed x 1000 (e.g., 1 mg = 1000)
 	Package    string
 	Form       string
 	BoxSize    int `gorm:"not null;check:box_size > 0"`

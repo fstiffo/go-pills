@@ -51,6 +51,13 @@ func handleCommand(c Command) error {
 	case AddMedicine:
 		appState.screen = AddMedicineScreen
 	case Refresh:
+		if err := RefreshData(); err != nil {
+			pterm.Error.Printf("Failed to refresh. Error:%v\n", err)
+		} else {
+			pterm.Success.Println("Stocked units updated")
+			options := []string{"Continue"}
+			_, _ = pterm.DefaultInteractiveContinue.WithOptions(options).WithDefaultText("").Show()
+		}
 		appState.screen = SummaryScreen
 	case Exit:
 		return errors.New("exit")

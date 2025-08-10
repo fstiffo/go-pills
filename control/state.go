@@ -1,6 +1,10 @@
 package control
 
-import "gorm.io/gorm"
+import (
+	"github.com/fstiffo/go-pills/model"
+	"github.com/pterm/pterm"
+	"gorm.io/gorm"
+)
 
 // Command is a type for the different commands that the user can execute
 type Command int
@@ -58,4 +62,21 @@ func GetDB() *gorm.DB {
 // GetScreen get actual screen
 func GetScreen() Screen {
 	return appState.screen
+}
+
+// RefreshData updates the stock levels of all active ingredients.
+func RefreshData() error {
+	var activeIngredients []model.ActiveIngredient
+	if err := appState.db.Find(&activeIngredients).Error; err != nil {
+		return err
+	}
+
+	for i := range activeIngredients {
+		if err := model.UpdateStockedUnitsFromIntake(appState.db, &activeIngredients[i]); err != nil {
+			// It's better to log the error and continue with the next active ingredient.
+			pterm.Error.Printf("Failed to update stock for %s: %v\n", activeIngredients[i].Name, err)
+		}
+	}
+
+	return nil
 }
