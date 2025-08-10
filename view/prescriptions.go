@@ -16,7 +16,7 @@ func updatePrescriptionsScreen() {
 	// List current prescriptions
 	pterm.Println("\nCurrent prescriptions:")
 	tableData := model.GetPrescriptionsSummary(control.GetDB())
-	pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 
 	// Ask for ATC code to add or update
 	pterm.Println("\nEnter ATC code to add/update (blank to cancel):")

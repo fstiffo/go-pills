@@ -2,35 +2,40 @@ package control
 
 import (
 	"errors"
+	"strings"
 
-	"atomicgo.dev/keyboard"
-	"atomicgo.dev/keyboard/keys"
+	"github.com/pterm/pterm"
 )
 
 // WaitForCommand waits for a command from the user
 func WaitForCommand() error {
-	f := func(key keys.Key) (stop bool, err error) {
-		switch key.Code {
-		case keys.CtrlC, keys.Escape:
-			return true, handleCommand(Exit) // Return true to stop listener
-		case keys.RuneKey:
-		case keys.F1:
-			return true, handleCommand(Summary)
-		case keys.F2:
-			return true, handleCommand(UpdatePharmacy)
-		case keys.F3:
-			return true, handleCommand(UpdatePrescription)
-		case keys.F4:
-			return true, handleCommand(AddMedicine)
-		case keys.F5:
-			return true, handleCommand(Refresh)
-		default:
-		}
+	input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command:")
 
-		return false, nil // Return false to continue listening
+	if err != nil {
+		return err
 	}
 
-	return keyboard.Listen(f)
+	command := strings.ToLower(strings.TrimSpace(input))
+	if len(command) == 0 {
+		return nil
+	}
+
+	switch command[0] {
+	case 's':
+		return handleCommand(Summary)
+	case 'p':
+		return handleCommand(UpdatePharmacy)
+	case 'r':
+		return handleCommand(UpdatePrescription)
+	case 'a':
+		return handleCommand(AddMedicine)
+	case 'f':
+		return handleCommand(Refresh)
+	case 'q':
+		return handleCommand(Exit)
+	}
+
+	return nil
 }
 
 func handleCommand(c Command) error {

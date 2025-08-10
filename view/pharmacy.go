@@ -46,7 +46,7 @@ func updatePharmacyScreen() {
 			}
 		}
 		if med.Name == "" {
-			pterm.Error.Println("failed to retrive medicine")
+			pterm.Error.Println("failed to retrieve medicine")
 			return
 		}
 

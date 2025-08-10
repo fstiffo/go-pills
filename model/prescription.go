@@ -55,7 +55,7 @@ func GetPrescriptionsSummary(db *gorm.DB) pterm.TableData {
 		if p.LastStockUpdate.Valid {
 			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
 		}
-		stockInDays := strconv.FormatInt(p.StockedUnits/int64(p.Dosage)*int64(p.DosingFrequency), 10)
+		stockInDays := strconv.FormatInt(p.StockedUnits*int64(p.DosingFrequency)/p.Dosage, 10)
 		tableData = append(tableData, []string{atc, name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
 	}
 
