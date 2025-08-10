@@ -30,7 +30,8 @@ This starts the application using an embedded SQLite database (`pills.db`).
 - **ActiveIngredient** – identified by an ATC code, tracks stock and units.
 - **Medicine** – references an active ingredient, dosage, and packaging.
 - **Prescription** – dosage and frequency for an active ingredient.
-- **StockLog** and **IntakeLog** – audit stocking events and consumption.
+- **StockLog** – records restocking events.
+- **PrescriptionLog** – tracks changes to prescriptions.
 
 ## Roadmap
 - Export reports and summaries.
