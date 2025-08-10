@@ -33,9 +33,10 @@ func WaitForCommand() error {
 		return handleCommand(Refresh)
 	case 'q':
 		return handleCommand(Exit)
+	default:
+		pterm.Warning.Println("Invalid command")
+		return WaitForCommand()
 	}
-
-	return nil
 }
 
 func handleCommand(c Command) error {
