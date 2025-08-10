@@ -35,7 +35,7 @@ func Migrate(db *gorm.DB) error {
 
 // resetSchema drops the tables in the database and migrates the schema
 func resetSchema(db *gorm.DB, reset bool) error {
-	tables := []interface{}{&ActiveIngredient{}, &Medicine{}, &Prescription{}, &IntakeLog{}, &StockLog{}}
+	tables := []interface{}{&ActiveIngredient{}, &Medicine{}, &Prescription{}, &StockLog{}}
 	if reset {
 		for _, t := range tables {
 			if db.Migrator().HasTable(t) {

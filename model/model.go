@@ -19,17 +19,15 @@ const (
 // ActiveIngredient represents an active ingredient in a medicine or in a prescription.
 type ActiveIngredient struct {
 	gorm.Model
-	Name string `gorm:"unique;not null"`
-	ATC  string `gorm:"uniqueIndex;not null;size:7;check:length(ATC) = 7"`
-	// Stock stores units of active principle x 1000 (e.g. 1 mg = 1000)
-	Stock          int64 `gorm:"not null;default:0"`
-	Unit           Unit  `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'UI')"`
-	LastConsumedAt sql.NullTime
-	LastStockedAt  sql.NullTime
-	Medicines      []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC"`
-	Prescriptions  []Prescription `gorm:"foreignKey:RelatedATC;references:ATC"`
-	StockLogs      []StockLog     `gorm:"foreignKey:RelatedATC;references:ATC"`
-	IntakeLogs     []IntakeLog    `gorm:"foreignKey:RelatedATC;references:ATC"`
+	Name             string         `gorm:"unique;not null"`
+	ATC              string         `gorm:"uniqueIndex;not null;size:7;check:length(ATC) = 7"`
+	StockedUnits     int64          `gorm:"not null;default:0"` // Stocked units of active principle x 1000 (e.g. 1 mg = 1000)
+	Unit             Unit           `gorm:"not null;default:'mg';check:unit in ('ml', 'mg', 'UI')"`
+	LastIntakeUpdate sql.NullTime   // Last date when StockedUnits where update considering regular intake on the base of active prescriptions
+	LastStockUpdate  sql.NullTime   // Last date when StockedUnits where update for restocking
+	Medicines        []Medicine     `gorm:"foreignKey:RelatedATC;references:ATC"`
+	Prescriptions    []Prescription `gorm:"foreignKey:RelatedATC;references:ATC"`
+	StockLogs        []StockLog     `gorm:"foreignKey:RelatedATC;references:ATC"`
 }
 
 // Medicine represents a medicine that can be purchased.
@@ -50,23 +48,20 @@ type Medicine struct {
 // Prescription represents a prescription for a single active ingredient.
 type Prescription struct {
 	gorm.Model
-	RelatedATC string `gorm:"not null"`
-	// Dosage store active ingredient units prescibed x 1000 (e.g. 1 mg = 1000)
-	Dosage          int64 `gorm:"not null;check:dosage > 0"`
-	DosingFrequency int   `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosing frequency in days
-	StartDate       sql.NullTime
-	EndDate         sql.NullTime
-	IntakeLogs      []IntakeLog
+	RelatedATC      string       `gorm:"not null"`
+	Dosage          int64        `gorm:"not null;check:dosage > 0"`                      // Active ingredient units prescribed x 1000 (e.g. 1 mg = 1000)
+	DosingFrequency int          `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosing frequency in days
+	StartDate       sql.NullTime // Start date of validity
+	EndDate         sql.NullTime // End date of validity (A prescription is not more considered after the end date of validity)
 }
 
-// IntakeLog represents a log of a single prescription active ingredient intake.
-type IntakeLog struct {
+// PrescriptionLog represents a log of updates to prescriptions
+type PrescriptionLog struct {
 	gorm.Model
-	PrescriptionID uint      `gorm:"index;not null"`
-	RelatedATC     string    `gorm:"index;not null"`
-	ConsumedAt     time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
-	// Units stores active ingredient units comsumed x 1000 (e.g. 1 mg = 1000)
-	Units int64 `gorm:"not null;check:units > 0"`
+	PrescriptionID  uint      `gorm:"index;not null"`
+	UpdatedAt       time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
+	Dosage          int64     `gorm:"not null;check:dosage > 0"`                      // Active ingredient units prescribed x 1000 (e.g. 1 mg = 1000)
+	DosingFrequency int       `gorm:"not null;check:dosing_frequency > 0;default: 1"` // Dosing frequency in days
 }
 
 // StockLog represents a log of a single stocking of an active ingredient.
@@ -76,6 +71,5 @@ type StockLog struct {
 	RelatedATC string    `gorm:"index;not null"`
 	StockedAt  time.Time `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
 	Boxes      int       `gorm:"not null;check:boxes > 0"` // Boxes of medicine
-	// Units stores active ingredient units stocked x 1000 (e.g. 1 mg = 1000)
-	Units int64 `gorm:"not null;check:units > 0"`
+	Units      int64     `gorm:"not null;check:units > 0"` // Active ingredient units stocked x 1000 (e.g. 1 mg = 1000)
 }
