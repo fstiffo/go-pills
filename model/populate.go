@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"log"
 	"math"
 
@@ -8,25 +9,26 @@ import (
 )
 
 // Populate creates the tables in the database and populates them with the necessary data
-func Populate(db *gorm.DB, reset bool) {
+func Populate(db *gorm.DB, reset bool) error {
 
 	// Migrate the schema
 	if err := resetSchema(db, reset); err != nil {
-		log.Fatalf("failed to reset schema: %v", err)
+		return fmt.Errorf("failed to reset schema: %w", err)
 	}
 
 	// Populate the database with the necessary data
 	if err := populateActiveIngredients(db); err != nil {
-		log.Fatalf("failed to populate active ingredients: %v", err)
+		return fmt.Errorf("failed to populate active ingredients: %w", err)
 	}
 	if err := populatePrescriptions(db); err != nil {
-		log.Fatalf("failed to populate prescriptions: %v", err)
+		return fmt.Errorf("failed to populate prescriptions: %w", err)
 	}
 	if err := populateMedicines(db); err != nil {
-		log.Fatalf("failed to populate medicines: %v", err)
+		return fmt.Errorf("failed to populate medicines: %w", err)
 	}
 
 	log.Println("Database populated")
+	return nil
 }
 
 // Migrate applies database migrations without dropping existing data.

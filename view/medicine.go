@@ -1,78 +1,60 @@
 package view
 
 import (
-	"errors"
-	"math"
-	"strconv"
-
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
 	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
-	"gorm.io/gorm"
 )
 
 func addMedicineScreen() {
 	clearScreen()
 	pterm.DefaultHeader.WithFullWidth().Println("ADD MEDICINE")
 
-	db := control.GetDB()
+	// List current prescriptions
+	pterm.Println("\nCurrent medicines:")
+	ShowMedicinesSummaryTable()
 
-	name, _ := pterm.DefaultInteractiveTextInput.Show("Medicine name")
+	name, _ := promptAndValidate("Enter medicine name to add a new one (leave blank any prompt to leave)", validation.ValidateName, true)
 	if name == "" {
-		pterm.Warning.Println("Name cannot be empty")
 		return
 	}
 
 	mah, _ := pterm.DefaultInteractiveTextInput.Show("Marketing authorisation holder")
 
-	aic, _ := pterm.DefaultInteractiveTextInput.Show("AIC code")
-	if err := validation.ValidateAIC(aic); err != nil {
-		pterm.Warning.Println(err)
+	aic, err := promptAndValidate("AIC code", validation.ValidateAIC, true)
+	if aic == "" {
 		return
 	}
 
-	atc, _ := pterm.DefaultInteractiveTextInput.Show("ATC code")
-	if err := validation.ValidateATC(atc); err != nil {
-		pterm.Warning.Println(err)
+	atc, err := promptAndValidate("ATC code", validation.ValidateATC, true)
+	if atc == "" {
 		return
 	}
 
-	var ai model.ActiveIngredient
-	if err := db.Where("atc = ?", atc).First(&ai).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			create, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).Show("ATC not found. Create new active ingredient?")
-			if !create {
-				pterm.Warning.Println("Cannot add medicine without active ingredient")
-				return
-			}
-			aiName, _ := pterm.DefaultInteractiveTextInput.Show("Active ingredient name")
-			unitStr, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("mg").Show("Unit (mg/ml/UI)")
-			ai = model.ActiveIngredient{Name: aiName, ATC: atc, Unit: model.Unit(unitStr)}
-			if err := model.InsertActiveIngredient(db, &ai); err != nil {
-				pterm.Error.Printf("failed to create active ingredient: %v\n", err)
-				return
-			}
-		} else {
-			pterm.Error.Printf("failed to retrieve active ingredient: %v\n", err)
-			return
-		}
-	}
-
-	dosageStr, _ := pterm.DefaultInteractiveTextInput.Show("Dosage (" + string(ai.Unit) + ") per unit")
-	dosageF, err := strconv.ParseFloat(dosageStr, 64)
-	if err != nil || dosageF <= 0 {
-		pterm.Warning.Println("Invalid dosage")
+	ai, err := getOrPromptActiveIngredient(atc)
+	if err != nil {
+		pterm.Error.Printf("failed to get or create active ingredient: %v\n", err)
 		return
 	}
-	dosage := int64(math.Round(dosageF * 1000))
 
-	packageStr, _ := pterm.DefaultInteractiveTextInput.Show("Package")
-	form, _ := pterm.DefaultInteractiveTextInput.Show("Form")
-	boxSizeStr, _ := pterm.DefaultInteractiveTextInput.Show("Box size")
-	boxSize, err := strconv.Atoi(boxSizeStr)
-	if err != nil || boxSize <= 0 {
-		pterm.Warning.Println("Invalid box size")
+	dosage, _ := promptAndValidate("Enter dosage (in "+string(ai.Unit)+")", validation.ValidateDosage, true)
+	if dosage == 0 {
+		return
+	}
+
+	packageStr, _ := promptAndValidate("Package (e.g. blister)", validation.ValidateName, true)
+	if packageStr == "" {
+		return
+	}
+
+	form, _ := promptAndValidate("Form (e.g. tablet)", validation.ValidateName, true)
+	if form == "" {
+		return
+	}
+
+	boxSize, _ := promptAndValidate("Box size", validation.ValidateBoxSize, true)
+	if boxSize == 0 {
 		return
 	}
 
@@ -87,10 +69,11 @@ func addMedicineScreen() {
 		BoxSize:    boxSize,
 	}
 
-	if err := model.InsertMedicine(db, &med); err != nil {
+	if err := model.InsertMedicine(control.GetDB(), &med); err != nil {
 		pterm.Error.Printf("failed to save medicine: %v\n", err)
 		return
 	}
 
-	pterm.Success.Println("Medicine added")
+	pterm.Success.Println(name + " medicine added")
+	ShowMedicinesSummaryTable()
 }

@@ -18,6 +18,7 @@ const (
 
 var units = []string{"mg", "ml", "UI"}
 
+// Units returns the list of allowed units.
 func Units() []string {
 	return units
 }

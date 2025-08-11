@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 	"os"
 
 	"gorm.io/driver/sqlite"
@@ -17,21 +17,30 @@ func main() {
 	reset := flag.Bool("reset", false, "reset database and seed data")
 	flag.Parse()
 
-	dbPath := "pills.db"
+	dbPath := os.Getenv("PILLS_DB_PATH")
+	if dbPath == "" {
+		dbPath = "pills.db"
+	}
+
 	_, err := os.Stat(dbPath)
 	newDB := os.IsNotExist(err)
 
-	db, err := gorm.Open(sqlite.Open("pills.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		fmt.Printf("failed to connect database: %v\n", err)
+		os.Exit(1)
 	}
 	control.SetDB(db)
 
 	if newDB || *reset {
-		model.Populate(control.GetDB(), *reset)
+		if err := model.Populate(control.GetDB(), *reset); err != nil {
+			fmt.Printf("failed to populate database: %v\n", err)
+			os.Exit(1)
+		}
 	} else {
 		if err := model.Migrate(control.GetDB()); err != nil {
-			log.Fatalf("failed to migrate schema: %v", err)
+			fmt.Printf("failed to migrate schema: %v\n", err)
+			os.Exit(1)
 		}
 	}
 	view.MainLoop()
