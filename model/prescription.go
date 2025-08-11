@@ -1,10 +1,12 @@
 package model
 
 import (
+	"cmp"
 	"database/sql"
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"gorm.io/gorm"
@@ -36,6 +38,7 @@ func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 	var ps []prescription
 	result := db.Model(&Prescription{}).
 		Select("prescriptions.*, ai.name, ai.unit, ai.stocked_units, ai.last_intake_update, ai.last_stock_update").
+		Where("prescriptions.end_date IS NULL").
 		Joins("JOIN active_ingredients ai ON ai.atc = prescriptions.related_atc").
 		Scan(&ps)
 	if result.Error != nil {
@@ -57,7 +60,16 @@ func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 			StockInDays:      stockInDays,
 		})
 	}
+	summaries = sortSummaries(summaries)
 
+	return summaries
+}
+
+func sortSummaries(summaries []PrescriptionSummary) []PrescriptionSummary {
+	stockCmp := func(a, b PrescriptionSummary) int {
+		return cmp.Compare(a.StockInDays, b.StockInDays)
+	}
+	slices.SortFunc(summaries, stockCmp)
 	return summaries
 }
 
