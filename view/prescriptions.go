@@ -3,6 +3,7 @@ package view
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const criticalStockInDays = 15 // Alert, if stock in days is less than criticalStockInDays
+
 func updatePrescriptionsScreen() {
 	clearScreen()
 	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PRESCRIPTIONS")
@@ -24,14 +27,12 @@ func updatePrescriptionsScreen() {
 	tableData := prescriptionSummaryTableData(summaries)
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 
-	// Ask for ATC code to add or update
-	pterm.Println("\nEnter ATC code to add/update (blank to cancel):")
-	var atc string
-	_, _ = fmt.Scanln(&atc)
-	if atc == "" {
+	// Ask for ATC code to add or update a prescription
+	atcStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter ATC code to add/update a prescription (blank to cancel)")
+	if atcStr == "" {
 		return
 	}
-	atc = strings.ToUpper(atc)
+	atc := strings.ToUpper(atcStr)
 
 	if err := validation.ValidateATC(atc); err != nil {
 		pterm.Error.Println(err)
@@ -39,24 +40,17 @@ func updatePrescriptionsScreen() {
 	}
 
 	// Check if the active ingredient exists
-	_, err := model.GetActiveIngredientByATC(control.GetDB(), atc)
+	ai, err := model.GetActiveIngredientByATC(control.GetDB(), atc)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// The active ingredient does not exist
 			pterm.Warning.Printf("Active ingredient with ATC %s not found. Let's add it.\n", atc)
-			name, _ := pterm.DefaultInteractiveTextInput.Show("Enter active ingredient name")
-			unitStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter unit (mg, ml, UI)")
-			unit := model.Unit(unitStr)
-
-			newAI := &model.ActiveIngredient{
-				Name: name,
-				ATC:  atc,
-				Unit: unit,
-			}
-			if err := model.InsertActiveIngredient(control.GetDB(), newAI); err != nil {
+			if newAI, err := insertActiveIngredient(atc, ai); err != nil {
 				pterm.Error.Println(err)
 				return
+			} else {
+				ai = newAI
 			}
-			pterm.Success.Printf("Active ingredient %s added.\n", name)
 		} else {
 			pterm.Error.Println(err)
 			return
@@ -64,24 +58,36 @@ func updatePrescriptionsScreen() {
 	}
 
 	// Gather prescription details
-	pterm.Println("Enter dosage (units x1000):")
-	var dosage int64
-	_, _ = fmt.Scanln(&dosage)
+	dosageStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter dosage (in " + string(ai.Unit) + ")")
+	dosageFloat, err := strconv.ParseFloat(dosageStr, 64)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+	dosage := int64(math.Round(dosageFloat * 1000))
 	if err := validation.ValidateDosage(dosage); err != nil {
 		pterm.Error.Println(err)
 		return
 	}
 
-	pterm.Println("Enter dosing frequency in days:")
-	var freq int
-	_, _ = fmt.Scanln(&freq)
+	freqStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter dosing frequency (in days)")
+	freq, err := strconv.Atoi(freqStr)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+	if err := validation.ValidateFrequency(freq); err != nil {
+		pterm.Error.Println(err)
+		return
+	}
 
-	pterm.Println("Enter start date (YYYY-MM-DD, blank for today):")
-	var startStr string
-	_, _ = fmt.Scanln(&startStr)
+	startStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter start date (YYYY-MM-DD, blank for today)")
 	start := time.Now()
 	if startStr != "" {
-		if t, err := time.Parse("2006-01-02", startStr); err == nil {
+		if t, err := time.Parse("2006-01-02", startStr); err != nil {
+			pterm.Error.Println(err)
+			return
+		} else {
 			start = t
 		}
 	}
@@ -124,7 +130,30 @@ func prescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableDat
 			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
 		}
 		stockInDays := strconv.FormatInt(p.StockInDays, 10)
+		if p.StockInDays < criticalStockInDays {
+			stockInDays += "<--" // Alert
+		}
 		tableData = append(tableData, []string{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
 	}
 	return tableData
+}
+
+func insertActiveIngredient(atc string, newAI *model.ActiveIngredient) (*model.ActiveIngredient, error) {
+	name, _ := pterm.DefaultInteractiveTextInput.Show("Enter active ingredient name")
+	unitStr, _ := pterm.DefaultInteractiveTextInput.Show("Enter unit (mg, ml, UI)")
+	if err := validation.ValidateUnit(unitStr); err != nil {
+		return nil, err
+	}
+	unit := model.Unit(unitStr)
+
+	newAI = &model.ActiveIngredient{
+		Name: name,
+		ATC:  atc,
+		Unit: unit,
+	}
+	if err := model.InsertActiveIngredient(control.GetDB(), newAI); err != nil {
+		return nil, err
+	}
+	pterm.Success.Printf("Active ingredient %s added.\n", name)
+	return newAI, nil
 }

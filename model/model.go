@@ -16,6 +16,12 @@ const (
 	ui Unit = "UI"
 )
 
+var units = []string{"mg", "ml", "UI"}
+
+func Units() []string {
+	return units
+}
+
 // ActiveIngredient represents an active ingredient in a medicine or in a prescription.
 type ActiveIngredient struct {
 	gorm.Model

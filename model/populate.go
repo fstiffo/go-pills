@@ -2,6 +2,7 @@ package model
 
 import (
 	"log"
+	"math"
 
 	"gorm.io/gorm"
 )
@@ -60,7 +61,7 @@ func populateActiveIngredients(db *gorm.DB) error {
 		{Name: "acido acetilsalicilico", ATC: "B01AC06"},
 		{Name: "allopurinolo", ATC: "M04AA01"},
 		{Name: "amlodipina", ATC: "C08CA01"},
-		{Name: "colicalciferolo", ATC: "A11CC05", Unit: ui},
+		{Name: "colecalciferolo", ATC: "A11CC05", Unit: ui},
 		{Name: "doxazosina", ATC: "C02CA04"},
 		{Name: "insulina glargine", ATC: "A10AE04", Unit: ui},
 		{Name: "metoprololo", ATC: "C07AB02"},
@@ -93,12 +94,12 @@ func populatePrescriptions(db *gorm.DB) error {
 		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: 100 * 1000, DosingFrequency: 1},
 		{RelatedATC: ingredientMap["allopurinolo"], Dosage: 150 * 1000, DosingFrequency: 1},
 		{RelatedATC: ingredientMap["amlodipina"], Dosage: 5 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["colicalciferolo"], Dosage: 10000 * 1000, DosingFrequency: 7},
+		{RelatedATC: ingredientMap["colecalciferolo"], Dosage: 10000 * 1000, DosingFrequency: 7},
 		{RelatedATC: ingredientMap["doxazosina"], Dosage: 2 * 1000, DosingFrequency: 1},
 		{RelatedATC: ingredientMap["insulina glargine"], Dosage: 16 * 1000, DosingFrequency: 1},
 		{RelatedATC: ingredientMap["metoprololo"], Dosage: 50 * 1000, DosingFrequency: 1},
 		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: 1500 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["prednisone"], Dosage: 7500, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["prednisone"], Dosage: int64(math.Round(7.5 * 1000)), DosingFrequency: 1},
 		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 30 * 1000, DosingFrequency: 1},
 	}
 
