@@ -23,7 +23,7 @@ type MedicineSummary struct {
 func GetMedicinesSummary(db *gorm.DB) []MedicineSummary {
 	type medicine struct {
 		Medicine
-		unit Unit
+		Unit Unit
 	}
 	var ms []medicine
 	result := db.Model(&Medicine{}).
@@ -44,7 +44,7 @@ func GetMedicinesSummary(db *gorm.DB) []MedicineSummary {
 			RelatedATC: m.RelatedATC,
 			AIC:        m.AIC,
 			Dosage:     m.Dosage,
-			Unit:       m.unit,
+			Unit:       m.Unit,
 			Package:    m.Package,
 			Form:       m.Form,
 			BoxSize:    m.BoxSize,
