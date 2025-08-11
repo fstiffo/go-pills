@@ -17,7 +17,7 @@ func updatePharmacyScreen() {
 	db := control.GetDB()
 
 	var medicines []model.Medicine
-	if err := db.Find(&medicines).Error; err != nil {
+	if err := db.Order("name").Find(&medicines).Error; err != nil {
 		pterm.Error.Printf("failed to retrive medicines: %v\n", err)
 		return
 	}

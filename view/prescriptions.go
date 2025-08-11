@@ -33,7 +33,7 @@ func updatePrescriptionsScreen() {
 	}
 	atc = strings.ToUpper(atc)
 
-	if err := validation.ValidateAIC(atc); err != nil {
+	if err := validation.ValidateATC(atc); err != nil {
 		pterm.Error.Println(err)
 		return
 	}
