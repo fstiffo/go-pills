@@ -17,11 +17,57 @@ import (
 // criticalStockInDays is a constant used to alert if stock in days is less than this value.
 const criticalStockInDays = 15
 
-// ShowPrescriptionsSummaryTable retrieves and displays a summary of all prescriptions in a formatted table.
+// ShowPrescriptionsSummaryTable retrieves and displays a comprehensive summary of all prescriptions in a formatted table.
 func ShowPrescriptionsSummaryTable() {
 	summaries := model.GetPrescriptionsSummary(control.GetDB())
-	tableData := PrescriptionSummaryTableData(summaries)
-	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+	
+	t := table.NewWriter()
+	t.SetTitle("Prescriptions Summary")
+	
+	// Set column alignment for comprehensive prescriptions table
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, Align: text.AlignCenter}, // ATC
+		{Number: 2, Align: text.AlignLeft},   // Active Ingredient
+		{Number: 3, Align: text.AlignRight},  // Dosage
+		{Number: 4, Align: text.AlignCenter}, // Frequency
+		{Number: 5, Align: text.AlignCenter}, // Valid from
+		{Number: 6, Align: text.AlignCenter}, // Last intake update
+		{Number: 7, Align: text.AlignCenter}, // Last stocked
+		{Number: 8, Align: text.AlignRight},  // Stock in days
+	})
+	
+	// Add header
+	t.AppendHeader(table.Row{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"})
+	
+	// Add data rows
+	for _, p := range summaries {
+		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
+		dayOrDays := " day"
+		if p.DosingFrequency > 1 {
+			dayOrDays = " days"
+		}
+		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		validFrom := "-"
+		if p.StartDate.Valid {
+			validFrom = p.StartDate.Time.Format("2006-01-02")
+		}
+		lastIntake := "-"
+		if p.LastIntakeUpdate.Valid {
+			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
+		}
+		lastStock := "-"
+		if p.LastStockUpdate.Valid {
+			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+		}
+		stockInDays := strconv.FormatInt(p.StockInDays, 10)
+		if p.StockInDays < criticalStockInDays {
+			stockInDays += " ⚠️"
+		}
+		
+		t.AppendRow(table.Row{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
+	}
+	
+	fmt.Println(t.Render())
 }
 
 // ShowOverviewTable retrieves and displays a compact overview of all prescriptions with mixed column alignment.
@@ -64,39 +110,6 @@ func ShowOverviewTable() {
 	}
 
 	fmt.Println(t.Render())
-}
-
-// PrescriptionSummaryTableData prepares the data for displaying prescription summaries in a pterm table.
-func PrescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableData {
-	tableData := pterm.TableData{
-		{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"},
-	}
-	for _, p := range ps {
-		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
-		dayOrDays := " day"
-		if p.DosingFrequency > 1 {
-			dayOrDays = " days"
-		}
-		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
-		validFrom := "-"
-		if p.StartDate.Valid {
-			validFrom = p.StartDate.Time.Format("2006-01-02")
-		}
-		lastIntake := "-"
-		if p.LastIntakeUpdate.Valid {
-			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
-		}
-		lastStock := "-"
-		if p.LastStockUpdate.Valid {
-			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
-		}
-		stockInDays := strconv.FormatInt(p.StockInDays, 10)
-		if p.StockInDays < criticalStockInDays {
-			stockInDays += "<--" // Alert
-		}
-		tableData = append(tableData, []string{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
-	}
-	return tableData
 }
 
 // ShowMedicinesSummaryTable retrieves and displays a summary of all medicines in a formatted table with mixed column alignment.

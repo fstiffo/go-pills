@@ -14,7 +14,6 @@ func updatePrescriptionsScreen() {
 	clearScreen()
 
 	// List current prescriptions
-	pterm.Println("\nCurrent prescriptions:")
 	ShowPrescriptionsSummaryTable()
 
 	// Ask for ATC code to add or update a prescription
