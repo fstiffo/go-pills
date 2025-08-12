@@ -40,28 +40,16 @@ func formatCompactFrequency(freq int) string {
 	return fmt.Sprintf("%dd", freq)
 }
 
-// formatCompactMAH truncates MAH to fit in table
-func formatCompactMAH(mah string) string {
-	if len(mah) <= 15 {
-		return mah
+// formatCompactText truncates text to fit in table with specified max length
+func formatCompactText(text string, maxLength int) string {
+	if len(text) <= maxLength {
+		return text
 	}
-	return mah[:12] + "..."
-}
-
-// formatCompactForm truncates Form to fit in table
-func formatCompactForm(form string) string {
-	if len(form) <= 20 {
-		return form
+	// Reserve 3 characters for "..."
+	if maxLength <= 3 {
+		return "..."[:maxLength]
 	}
-	return form[:17] + "..."
-}
-
-// formatCompactPackage truncates Package to fit in table
-func formatCompactPackage(pkg string) string {
-	if len(pkg) <= 8 {
-		return pkg
-	}
-	return pkg[:5] + "..."
+	return text[:maxLength-3] + "..."
 }
 
 // ShowPrescriptionsSummaryTable retrieves and displays a comprehensive summary of all prescriptions in a formatted table.
@@ -181,9 +169,9 @@ func ShowMedicinesSummaryTable() {
 	// Add data rows
 	for _, med := range summaries {
 		dosage := formatCompactDosage(med.Dosage, string(med.Unit))
-		mah := formatCompactMAH(med.MAH)
-		form := formatCompactForm(med.Form)
-		pkg := formatCompactPackage(med.Package)
+		mah := formatCompactText(med.MAH, 15)
+		form := formatCompactText(med.Form, 20)
+		pkg := formatCompactText(med.Package, 8)
 		t.AppendRow(table.Row{
 			med.Name,
 			mah,
