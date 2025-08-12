@@ -12,7 +12,6 @@ import (
 
 func updatePrescriptionsScreen() {
 	clearScreen()
-	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PRESCRIPTIONS")
 
 	// List current prescriptions
 	pterm.Println("\nCurrent prescriptions:")

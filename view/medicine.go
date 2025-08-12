@@ -9,7 +9,6 @@ import (
 
 func addMedicineScreen() {
 	clearScreen()
-	pterm.DefaultHeader.WithFullWidth().Println("ADD MEDICINE")
 
 	// List current prescriptions
 	pterm.Println("\nCurrent medicines:")
@@ -22,12 +21,12 @@ func addMedicineScreen() {
 
 	mah, _ := pterm.DefaultInteractiveTextInput.Show("Marketing authorisation holder")
 
-	aic, err := promptAndValidate("AIC code", validation.ValidateAIC, true)
+	aic, _ := promptAndValidate("AIC code", validation.ValidateAIC, true)
 	if aic == "" {
 		return
 	}
 
-	atc, err := promptAndValidate("ATC code", validation.ValidateATC, true)
+	atc, _ := promptAndValidate("ATC code", validation.ValidateATC, true)
 	if atc == "" {
 		return
 	}

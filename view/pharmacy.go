@@ -12,13 +12,12 @@ const backOption = "__BACK__"
 
 func updatePharmacyScreen() {
 	clearScreen()
-	pterm.DefaultHeader.WithFullWidth().Println("UPDATE PHARMACY")
 
 	db := control.GetDB()
 
 	var medicines []model.Medicine
 	if err := db.Order("name").Find(&medicines).Error; err != nil {
-		pterm.Error.Printf("failed to retrive medicines: %v\n", err)
+		pterm.Error.Printf("failed to retrieve medicines: %v\n", err)
 		return
 	}
 	if len(medicines) == 0 {
@@ -33,6 +32,8 @@ func updatePharmacyScreen() {
 	}
 
 	for {
+		pterm.BgLightBlue.Print("\nChoose a medicine to add new boxes to pharmacy stock (leave blank any prompt to leave):")
+
 		selected, _ := pterm.
 			DefaultInteractiveSelect.
 			WithOptions(options).

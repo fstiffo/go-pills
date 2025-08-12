@@ -44,7 +44,7 @@ func ValidateAIC(aic string) (string, error) {
 func ValidateDosage(input string) (int64, error) {
 	dosage, err := strconv.ParseFloat(input, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Invalid number")
+		return 0, fmt.Errorf("invalid number")
 	}
 	if dosage <= 0 {
 		return 0, fmt.Errorf("dosage must be positive, got %f", dosage)
@@ -57,7 +57,7 @@ func ValidateDosage(input string) (int64, error) {
 func ValidateFrequency(input string) (int, error) {
 	freq, err := strconv.Atoi(input)
 	if err != nil {
-		return 0, fmt.Errorf("Invalid number")
+		return 0, fmt.Errorf("invalid number")
 	}
 	if freq <= 0 {
 		return 0, fmt.Errorf("frequency must be > 0, got %d", freq)
@@ -70,7 +70,7 @@ func ValidateFrequency(input string) (int, error) {
 func ValidateBoxSize(input string) (int, error) {
 	freq, err := strconv.Atoi(input)
 	if err != nil {
-		return 0, fmt.Errorf("Invalid number")
+		return 0, fmt.Errorf("invalid number")
 	}
 	if freq <= 0 {
 		return 0, fmt.Errorf("box size must be > 0, got %d", freq)
