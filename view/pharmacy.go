@@ -1,10 +1,9 @@
 package view
 
 import (
-	"strconv"
-
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
+	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
 )
 
@@ -32,13 +31,11 @@ func updatePharmacyScreen() {
 	}
 
 	for {
-		pterm.BgLightBlue.Print("\nChoose a medicine to add new boxes to pharmacy stock (leave blank any prompt to leave):")
-
 		selected, _ := pterm.
 			DefaultInteractiveSelect.
 			WithOptions(options).
 			WithMaxHeight(len(options)).
-			Show()
+			Show("Choose a medicine to add new boxes to pharmacy stock (" + backOption + " to leave)")
 		if selected == backOption {
 			break
 		}
@@ -55,10 +52,8 @@ func updatePharmacyScreen() {
 			return
 		}
 
-		boxesStr, _ := pterm.DefaultInteractiveTextInput.Show("Boxes to add")
-		boxes, err := strconv.Atoi(boxesStr)
-		if err != nil || boxes < 1 {
-			pterm.Warning.Println("Invalid number of boxes")
+		boxes, _ := promptAndValidate("Boxes to add (leave blank any prompt to leave)", validation.ValidateBoxSize, true)
+		if boxes == 0 {
 			continue
 		}
 
