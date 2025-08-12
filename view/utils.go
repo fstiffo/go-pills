@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
@@ -16,6 +17,52 @@ import (
 
 // criticalStockInDays is a constant used to alert if stock in days is less than this value.
 const criticalStockInDays = 15
+
+// formatCompactDate formats a date as MM/DD for compact display
+func formatCompactDate(date time.Time) string {
+	return date.Format("01/02")
+}
+
+// formatCompactDosage formats dosage without unnecessary decimals
+func formatCompactDosage(dosage int64, unit string) string {
+	value := float64(dosage) / 1000
+	if value == float64(int64(value)) {
+		return fmt.Sprintf("%.0f %s", value, unit)
+	}
+	return fmt.Sprintf("%.2f %s", value, unit)
+}
+
+// formatCompactFrequency formats frequency in compact d format
+func formatCompactFrequency(freq int) string {
+	if freq == 1 {
+		return "1d"
+	}
+	return fmt.Sprintf("%dd", freq)
+}
+
+// formatCompactMAH truncates MAH to fit in table
+func formatCompactMAH(mah string) string {
+	if len(mah) <= 15 {
+		return mah
+	}
+	return mah[:12] + "..."
+}
+
+// formatCompactForm truncates Form to fit in table
+func formatCompactForm(form string) string {
+	if len(form) <= 20 {
+		return form
+	}
+	return form[:17] + "..."
+}
+
+// formatCompactPackage truncates Package to fit in table
+func formatCompactPackage(pkg string) string {
+	if len(pkg) <= 8 {
+		return pkg
+	}
+	return pkg[:5] + "..."
+}
 
 // ShowPrescriptionsSummaryTable retrieves and displays a comprehensive summary of all prescriptions in a formatted table.
 func ShowPrescriptionsSummaryTable() {
@@ -37,31 +84,27 @@ func ShowPrescriptionsSummaryTable() {
 	})
 	
 	// Add header
-	t.AppendHeader(table.Row{"ATC", "Active Ingredient", "Dosage", "Frequency", "Valid from", "Last intake update", "Last stocked", "Stock in days"})
+	t.AppendHeader(table.Row{"ATC", "Ingredient", "Dosage", "Freq", "Valid From", "Last Intake", "Stocked", "Days Left"})
 	
 	// Add data rows
 	for _, p := range summaries {
-		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
-		dayOrDays := " day"
-		if p.DosingFrequency > 1 {
-			dayOrDays = " days"
-		}
-		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		dosage := formatCompactDosage(p.Dosage, p.Unit)
+		frequency := formatCompactFrequency(p.DosingFrequency)
 		validFrom := "-"
 		if p.StartDate.Valid {
-			validFrom = p.StartDate.Time.Format("2006-01-02")
+			validFrom = formatCompactDate(p.StartDate.Time)
 		}
 		lastIntake := "-"
 		if p.LastIntakeUpdate.Valid {
-			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
+			lastIntake = formatCompactDate(p.LastIntakeUpdate.Time)
 		}
 		lastStock := "-"
 		if p.LastStockUpdate.Valid {
-			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+			lastStock = formatCompactDate(p.LastStockUpdate.Time)
 		}
 		stockInDays := strconv.FormatInt(p.StockInDays, 10)
 		if p.StockInDays < criticalStockInDays {
-			stockInDays += " ⚠️"
+			stockInDays += "⚠️"
 		}
 		
 		t.AppendRow(table.Row{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
@@ -88,27 +131,23 @@ func ShowOverviewTable() {
 	})
 
 	// Add header
-	t.AppendHeader(table.Row{"Active Ingredient", "Dosage", "Frequency", "Last intake update", "Last stocked", "Stock in days"})
+	t.AppendHeader(table.Row{"Ingredient", "Dosage", "Freq", "Last Intake", "Stocked", "Days Left"})
 
 	// Add data rows
 	for _, p := range summaries {
-		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
-		dayOrDays := " day"
-		if p.DosingFrequency > 1 {
-			dayOrDays = " days"
-		}
-		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		dosage := formatCompactDosage(p.Dosage, p.Unit)
+		frequency := formatCompactFrequency(p.DosingFrequency)
 		lastIntake := "-"
 		if p.LastIntakeUpdate.Valid {
-			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
+			lastIntake = formatCompactDate(p.LastIntakeUpdate.Time)
 		}
 		lastStock := "-"
 		if p.LastStockUpdate.Valid {
-			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+			lastStock = formatCompactDate(p.LastStockUpdate.Time)
 		}
 		stockInDays := strconv.FormatInt(p.StockInDays, 10)
 		if p.StockInDays < criticalStockInDays {
-			stockInDays += " ⚠️"
+			stockInDays += "⚠️"
 		}
 
 		t.AppendRow(table.Row{p.Name, dosage, frequency, lastIntake, lastStock, stockInDays})
@@ -137,19 +176,22 @@ func ShowMedicinesSummaryTable() {
 	})
 
 	// Add header
-	t.AppendHeader(table.Row{"Name", "MAH", "ATC", "AIC", "Dosage", "Package", "Form", "Box Size"})
+	t.AppendHeader(table.Row{"Name", "MAH", "ATC", "AIC", "Dosage", "Pkg", "Form", "Box"})
 
 	// Add data rows
 	for _, med := range summaries {
-		dosage := fmt.Sprintf("%.2f %s", float64(med.Dosage)/1000, med.Unit)
+		dosage := formatCompactDosage(med.Dosage, string(med.Unit))
+		mah := formatCompactMAH(med.MAH)
+		form := formatCompactForm(med.Form)
+		pkg := formatCompactPackage(med.Package)
 		t.AppendRow(table.Row{
 			med.Name,
-			med.MAH,
+			mah,
 			med.RelatedATC,
 			med.AIC,
 			dosage,
-			med.Package,
-			med.Form,
+			pkg,
+			form,
 			strconv.Itoa(med.BoxSize),
 		})
 	}

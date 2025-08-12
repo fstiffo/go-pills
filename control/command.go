@@ -18,7 +18,7 @@ func WaitForCommand() error {
 
 		command := strings.ToLower(strings.TrimSpace(input))
 		if len(command) == 0 {
-			continue
+			return handleCommand(Exit)
 		}
 
 		switch command[0] {
