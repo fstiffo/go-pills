@@ -52,7 +52,7 @@ func updatePharmacyScreen() {
 			return
 		}
 
-		boxes, _ := promptAndValidate("Boxes to add (leave blank any prompt to leave)", validation.ValidateBoxSize, true)
+		boxes, _ := promptAndValidate("Boxes to add (leave any prompt blank to exit)", validation.ValidateBoxSize, true)
 		if boxes == 0 {
 			continue
 		}
@@ -78,5 +78,5 @@ func updatePharmacyScreen() {
 		}
 	}
 
-	summaryScreen()
+	overviewScreen()
 }

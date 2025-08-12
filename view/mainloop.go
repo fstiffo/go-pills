@@ -13,8 +13,8 @@ func MainLoop() {
 	introScreen()
 	for {
 		switch control.GetScreen() {
-		case control.SummaryScreen:
-			summaryScreen()
+		case control.OverviewScreen:
+			overviewScreen()
 		case control.UpdatePharmacyScreen:
 			updatePharmacyScreen()
 		case control.UpdatePrescriptionScreen:
@@ -23,7 +23,7 @@ func MainLoop() {
 			addMedicineScreen()
 		default:
 			pterm.Error.Println("unhandled default case in main loop")
-			summaryScreen()
+			overviewScreen()
 		}
 		menu()
 		if err := control.WaitForCommand(); err != nil {
@@ -49,7 +49,7 @@ func introScreen() {
 func menu() {
 	pterm.
 		NewStyle(pterm.FgLightYellow, pterm.BgBlue).
-		Println(" [(S)ummary] [Update (P)harmacy] [Update P(R)escriptions] [(A)dd Medicine Boxes] [Re(F)resh] [(Q)uit] ")
+		Println(" [(S)tock Overview] [Update (P)harmacy] [Update P(R)escriptions] [(A)dd Medicine Boxes] [Re(F)resh] [(Q)uit] ")
 }
 
 func clearScreen() {

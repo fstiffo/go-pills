@@ -11,8 +11,8 @@ import (
 type Command int
 
 const (
-	// Summary command
-	Summary Command = iota
+	// Overview command
+	Overview Command = iota
 	// UpdatePharmacy command
 	UpdatePharmacy
 	// UpdatePrescription command
@@ -31,8 +31,8 @@ type Screen int
 const (
 	// IntroScreen is the first screen
 	IntroScreen Screen = iota
-	// SummaryScreen is the second screen
-	SummaryScreen
+	// OverviewScreen is the second screen
+	OverviewScreen
 	// UpdatePharmacyScreen is the third screen
 	UpdatePharmacyScreen
 	// UpdatePrescriptionScreen is the fourth screen
@@ -48,7 +48,7 @@ type applicationState struct {
 }
 
 // AppState is the application state
-var appState = applicationState{screen: SummaryScreen, lastCommand: Summary}
+var appState = applicationState{screen: OverviewScreen, lastCommand: Overview}
 
 // SetDB creates a new application state
 func SetDB(db *gorm.DB) {

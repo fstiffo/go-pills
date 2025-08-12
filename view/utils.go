@@ -24,12 +24,12 @@ func ShowPrescriptionsSummaryTable() {
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 }
 
-// ShowSummaryTable retrieves and displays a compact summary of all prescriptions with mixed column alignment.
-func ShowSummaryTable() {
+// ShowOverviewTable retrieves and displays a compact overview of all prescriptions with mixed column alignment.
+func ShowOverviewTable() {
 	summaries := model.GetPrescriptionsSummary(control.GetDB())
 
 	t := table.NewWriter()
-	t.SetTitle("Prescriptions Summary")
+	t.SetTitle("Stock Overview")
 
 	// Set column alignment: Name left, numbers right
 	t.SetColumnConfigs([]table.ColumnConfig{
@@ -102,10 +102,10 @@ func PrescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableDat
 // ShowMedicinesSummaryTable retrieves and displays a summary of all medicines in a formatted table with mixed column alignment.
 func ShowMedicinesSummaryTable() {
 	summaries := model.GetMedicinesSummary(control.GetDB())
-	
+
 	t := table.NewWriter()
 	t.SetTitle("Medicines Summary")
-	
+
 	// Set column alignment
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, Align: text.AlignLeft},   // Name
@@ -117,10 +117,10 @@ func ShowMedicinesSummaryTable() {
 		{Number: 7, Align: text.AlignLeft},   // Form
 		{Number: 8, Align: text.AlignRight},  // Box Size
 	})
-	
+
 	// Add header
 	t.AppendHeader(table.Row{"Name", "MAH", "ATC", "AIC", "Dosage", "Package", "Form", "Box Size"})
-	
+
 	// Add data rows
 	for _, med := range summaries {
 		dosage := fmt.Sprintf("%.2f %s", float64(med.Dosage)/1000, med.Unit)
@@ -135,7 +135,7 @@ func ShowMedicinesSummaryTable() {
 			strconv.Itoa(med.BoxSize),
 		})
 	}
-	
+
 	fmt.Println(t.Render())
 }
 

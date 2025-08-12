@@ -11,10 +11,9 @@ func addMedicineScreen() {
 	clearScreen()
 
 	// List current prescriptions
-	pterm.Println("\nCurrent medicines:")
 	ShowMedicinesSummaryTable()
 
-	name, _ := promptAndValidate("Enter medicine name to add a new one (leave blank any prompt to leave)", validation.ValidateName, true)
+	name, _ := promptAndValidate("Enter medicine name to add a new one (leave any prompt blank to exit)", validation.ValidateName, true)
 	if name == "" {
 		return
 	}

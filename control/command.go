@@ -23,7 +23,7 @@ func WaitForCommand() error {
 
 		switch command[0] {
 		case 's':
-			return handleCommand(Summary)
+			return handleCommand(Overview)
 		case 'p':
 			return handleCommand(UpdatePharmacy)
 		case 'r':
@@ -43,8 +43,8 @@ func WaitForCommand() error {
 func handleCommand(c Command) error {
 	appState.lastCommand = c
 	switch c {
-	case Summary:
-		appState.screen = SummaryScreen
+	case Overview:
+		appState.screen = OverviewScreen
 	case UpdatePharmacy:
 		appState.screen = UpdatePharmacyScreen
 	case UpdatePrescription:
@@ -59,7 +59,7 @@ func handleCommand(c Command) error {
 			options := []string{"Continue"}
 			_, _ = pterm.DefaultInteractiveContinue.WithOptions(options).WithDefaultText("").Show()
 		}
-		appState.screen = SummaryScreen
+		appState.screen = OverviewScreen
 	case Exit:
 		return errors.New("exit")
 	}
