@@ -22,6 +22,13 @@ func ShowPrescriptionsSummaryTable() {
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 }
 
+// ShowSummaryTable retrieves and displays a compact summary of all prescriptions.
+func ShowSummaryTable() {
+	summaries := model.GetPrescriptionsSummary(control.GetDB())
+	tableData := SummaryTableData(summaries)
+	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+}
+
 // PrescriptionSummaryTableData prepares the data for displaying prescription summaries in a pterm table.
 func PrescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableData {
 	tableData := pterm.TableData{
@@ -51,6 +58,31 @@ func PrescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableDat
 			stockInDays += "<--" // Alert
 		}
 		tableData = append(tableData, []string{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
+	}
+	return tableData
+}
+
+// SummaryTableData prepares compact data for displaying prescription summaries in a pterm table.
+func SummaryTableData(ps []model.PrescriptionSummary) pterm.TableData {
+	tableData := pterm.TableData{
+		{"Active Ingredient", "Dosage", "Frequency", "Last stocked", "Stock in days"},
+	}
+	for _, p := range ps {
+		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
+		dayOrDays := " day"
+		if p.DosingFrequency > 1 {
+			dayOrDays = " days"
+		}
+		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		lastStock := "-"
+		if p.LastStockUpdate.Valid {
+			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+		}
+		stockInDays := strconv.FormatInt(p.StockInDays, 10)
+		if p.StockInDays < criticalStockInDays {
+			stockInDays += "<--" // Alert
+		}
+		tableData = append(tableData, []string{p.Name, dosage, frequency, lastStock, stockInDays})
 	}
 	return tableData
 }

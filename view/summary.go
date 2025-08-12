@@ -9,6 +9,6 @@ func summaryScreen() {
 
 	pterm.Println("\nSummary:")
 
-	ShowPrescriptionsSummaryTable()
+	ShowSummaryTable()
 	// pterm.Println("\nLast logs refresh: ", model.LastRefresh(control.GetDB()))
 }

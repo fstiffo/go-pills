@@ -10,7 +10,6 @@ import (
 
 // Populate creates the tables in the database and populates them with the necessary data
 func Populate(db *gorm.DB, reset bool) error {
-
 	// Migrate the schema
 	if err := resetSchema(db, reset); err != nil {
 		return fmt.Errorf("failed to reset schema: %w", err)
