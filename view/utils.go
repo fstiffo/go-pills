@@ -8,6 +8,8 @@ import (
 	"github.com/fstiffo/go-pills/control"
 	"github.com/fstiffo/go-pills/model"
 	"github.com/fstiffo/go-pills/validation"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/pterm/pterm"
 	"gorm.io/gorm"
 )
@@ -22,11 +24,46 @@ func ShowPrescriptionsSummaryTable() {
 	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
 }
 
-// ShowSummaryTable retrieves and displays a compact summary of all prescriptions.
+// ShowSummaryTable retrieves and displays a compact summary of all prescriptions with mixed column alignment.
 func ShowSummaryTable() {
 	summaries := model.GetPrescriptionsSummary(control.GetDB())
-	tableData := SummaryTableData(summaries)
-	_ = pterm.DefaultTable.WithHasHeader().WithRightAlignment().WithBoxed().WithData(tableData).Render()
+
+	t := table.NewWriter()
+	t.SetTitle("Prescriptions Summary")
+
+	// Set column alignment: Name left, numbers right
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, Align: text.AlignLeft},   // Active Ingredient
+		{Number: 2, Align: text.AlignRight},  // Dosage
+		{Number: 3, Align: text.AlignCenter}, // Frequency
+		{Number: 4, Align: text.AlignCenter}, // Last stocked
+		{Number: 5, Align: text.AlignRight},  // Stock in days
+	})
+
+	// Add header
+	t.AppendHeader(table.Row{"Active Ingredient", "Dosage", "Frequency", "Last stocked", "Stock in days"})
+
+	// Add data rows
+	for _, p := range summaries {
+		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
+		dayOrDays := " day"
+		if p.DosingFrequency > 1 {
+			dayOrDays = " days"
+		}
+		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		lastStock := "-"
+		if p.LastStockUpdate.Valid {
+			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
+		}
+		stockInDays := strconv.FormatInt(p.StockInDays, 10)
+		if p.StockInDays < criticalStockInDays {
+			stockInDays += " ⚠️"
+		}
+
+		t.AppendRow(table.Row{p.Name, dosage, frequency, lastStock, stockInDays})
+	}
+
+	fmt.Println(t.Render())
 }
 
 // PrescriptionSummaryTableData prepares the data for displaying prescription summaries in a pterm table.
@@ -62,46 +99,32 @@ func PrescriptionSummaryTableData(ps []model.PrescriptionSummary) pterm.TableDat
 	return tableData
 }
 
-// SummaryTableData prepares compact data for displaying prescription summaries in a pterm table.
-func SummaryTableData(ps []model.PrescriptionSummary) pterm.TableData {
-	tableData := pterm.TableData{
-		{"Active Ingredient", "Dosage", "Frequency", "Last stocked", "Stock in days"},
-	}
-	for _, p := range ps {
-		dosage := fmt.Sprintf("%.2f %s", float64(p.Dosage)/1000, p.Unit)
-		dayOrDays := " day"
-		if p.DosingFrequency > 1 {
-			dayOrDays = " days"
-		}
-		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
-		lastStock := "-"
-		if p.LastStockUpdate.Valid {
-			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
-		}
-		stockInDays := strconv.FormatInt(p.StockInDays, 10)
-		if p.StockInDays < criticalStockInDays {
-			stockInDays += "<--" // Alert
-		}
-		tableData = append(tableData, []string{p.Name, dosage, frequency, lastStock, stockInDays})
-	}
-	return tableData
-}
-
-// ShowMedicinesSummaryTable retrieves and displays a summary of all medicines in a formatted table.
+// ShowMedicinesSummaryTable retrieves and displays a summary of all medicines in a formatted table with mixed column alignment.
 func ShowMedicinesSummaryTable() {
 	summaries := model.GetMedicinesSummary(control.GetDB())
-	tableData := MedicineSummaryTableData(summaries)
-	_ = pterm.DefaultTable.WithHasHeader().WithBoxed().WithData(tableData).Render()
-}
-
-// MedicineSummaryTableData prepares the data for displaying medicine summaries in a pterm table.
-func MedicineSummaryTableData(medicines []model.MedicineSummary) pterm.TableData {
-	tableData := pterm.TableData{
-		{"Name", "MAH", "ATC", "AIC", "Dosage", "Package", "Form", "Box Size"},
-	}
-	for _, med := range medicines {
+	
+	t := table.NewWriter()
+	t.SetTitle("Medicines Summary")
+	
+	// Set column alignment
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, Align: text.AlignLeft},   // Name
+		{Number: 2, Align: text.AlignLeft},   // MAH
+		{Number: 3, Align: text.AlignCenter}, // ATC
+		{Number: 4, Align: text.AlignCenter}, // AIC
+		{Number: 5, Align: text.AlignRight},  // Dosage
+		{Number: 6, Align: text.AlignLeft},   // Package
+		{Number: 7, Align: text.AlignLeft},   // Form
+		{Number: 8, Align: text.AlignRight},  // Box Size
+	})
+	
+	// Add header
+	t.AppendHeader(table.Row{"Name", "MAH", "ATC", "AIC", "Dosage", "Package", "Form", "Box Size"})
+	
+	// Add data rows
+	for _, med := range summaries {
 		dosage := fmt.Sprintf("%.2f %s", float64(med.Dosage)/1000, med.Unit)
-		tableData = append(tableData, []string{
+		t.AppendRow(table.Row{
 			med.Name,
 			med.MAH,
 			med.RelatedATC,
@@ -112,7 +135,8 @@ func MedicineSummaryTableData(medicines []model.MedicineSummary) pterm.TableData
 			strconv.Itoa(med.BoxSize),
 		})
 	}
-	return tableData
+	
+	fmt.Println(t.Render())
 }
 
 func getOrPromptActiveIngredient(atc string) (*model.ActiveIngredient, error) {
