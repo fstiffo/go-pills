@@ -19,7 +19,10 @@ func addMedicineScreen() {
 		return
 	}
 
-	mah, _ := pterm.DefaultInteractiveTextInput.Show("Marketing authorisation holder")
+	mah, _ := promptAndValidate("Marketing authorisation holder", validation.ValidateName, true)
+	if mah == "" {
+		return
+	}
 
 	aic, _ := promptAndValidate("AIC code", validation.ValidateAIC, true)
 	if aic == "" {
