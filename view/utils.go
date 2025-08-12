@@ -82,12 +82,13 @@ func ShowOverviewTable() {
 		{Number: 1, Align: text.AlignLeft},   // Active Ingredient
 		{Number: 2, Align: text.AlignRight},  // Dosage
 		{Number: 3, Align: text.AlignCenter}, // Frequency
-		{Number: 4, Align: text.AlignCenter}, // Last stocked
-		{Number: 5, Align: text.AlignRight},  // Stock in days
+		{Number: 4, Align: text.AlignCenter}, // Last intake update
+		{Number: 5, Align: text.AlignCenter}, // Last stocked
+		{Number: 6, Align: text.AlignRight},  // Stock in days
 	})
 
 	// Add header
-	t.AppendHeader(table.Row{"Active Ingredient", "Dosage", "Frequency", "Last stocked", "Stock in days"})
+	t.AppendHeader(table.Row{"Active Ingredient", "Dosage", "Frequency", "Last intake update", "Last stocked", "Stock in days"})
 
 	// Add data rows
 	for _, p := range summaries {
@@ -97,6 +98,10 @@ func ShowOverviewTable() {
 			dayOrDays = " days"
 		}
 		frequency := strconv.Itoa(p.DosingFrequency) + dayOrDays
+		lastIntake := "-"
+		if p.LastIntakeUpdate.Valid {
+			lastIntake = p.LastIntakeUpdate.Time.Format("2006-01-02")
+		}
 		lastStock := "-"
 		if p.LastStockUpdate.Valid {
 			lastStock = p.LastStockUpdate.Time.Format("2006-01-02")
@@ -106,7 +111,7 @@ func ShowOverviewTable() {
 			stockInDays += " ⚠️"
 		}
 
-		t.AppendRow(table.Row{p.Name, dosage, frequency, lastStock, stockInDays})
+		t.AppendRow(table.Row{p.Name, dosage, frequency, lastIntake, lastStock, stockInDays})
 	}
 
 	fmt.Println(t.Render())
