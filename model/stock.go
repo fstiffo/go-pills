@@ -52,7 +52,7 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 
 	// Find all prescriptions for the given active ingredient that could have been active
 	if err := db.Where("related_atc = ?", ai.ATC).
-		Where("start_date <= ?", now).
+		Where("(start_date is null or start_date <= ?) and (end_date is null or end_date > ?)", now, now).
 		Order("start_date asc").
 		Find(&prescriptions).Error; err != nil {
 		return err
@@ -64,10 +64,10 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 		return db.Model(ai).Update("last_intake_update", now).Error
 	}
 
-	calculationStart := ai.LastIntakeUpdate.Time
+	calculationStart := ai.LastStockUpdate.Time
 	if !ai.LastIntakeUpdate.Valid {
-		// Per user feedback, if LastIntakeUpdate is null, it has to be considered as Time Zero.
-		calculationStart = time.Time{}
+		// Per user feedback, if LastIntakeUpdate is null, use LastStockUpdate instead of Time Zero
+		return db.Model(ai).Update("last_intake_update", ai.LastStockUpdate.Time).Error
 	}
 
 	// Truncate times to the beginning of the day for accurate day-by-day calculation
