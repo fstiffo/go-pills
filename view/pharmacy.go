@@ -16,7 +16,7 @@ func updatePharmacyScreen() {
 
 	var medicines []model.Medicine
 	if err := db.Order("name").Find(&medicines).Error; err != nil {
-		pterm.Error.Printf("failed to retrieve medicines: %v\n", err)
+		ShowErrorWithConfirm("failed to retrieve medicines: %v\n", err)
 		return
 	}
 	if len(medicines) == 0 {
@@ -63,11 +63,11 @@ func updatePharmacyScreen() {
 
 		units, err := model.CreateStockLog(db, med, boxes)
 		if err != nil {
-			pterm.Error.Printf("failed to create stock log: %v\n", err)
+			ShowErrorWithConfirm("failed to create stock log: %v\n", err)
 			continue
 		}
 		if err := model.IncrementActiveIngredientStock(db, med.RelatedATC, units, reset); err != nil {
-			pterm.Error.Printf("failed to update stock log: %v\n", err)
+			ShowErrorWithConfirm("failed to update stock log: %v\n", err)
 			continue
 		}
 		pterm.Success.Printf("Added %d boxes of %s", boxes, med.Name)

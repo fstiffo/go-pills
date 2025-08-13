@@ -35,7 +35,7 @@ func addMedicineScreen() {
 
 	ai, err := getOrPromptActiveIngredient(atc)
 	if err != nil {
-		pterm.Error.Printf("failed to get or create active ingredient: %v\n", err)
+		ShowErrorWithConfirm("failed to get or create active ingredient: %v\n", err)
 		return
 	}
 
@@ -71,7 +71,7 @@ func addMedicineScreen() {
 	}
 
 	if err := model.InsertMedicine(control.GetDB(), &med); err != nil {
-		pterm.Error.Printf("failed to save medicine: %v\n", err)
+		ShowErrorWithConfirm("failed to save medicine: %v\n", err)
 		return
 	}
 

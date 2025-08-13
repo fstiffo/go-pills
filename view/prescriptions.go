@@ -25,7 +25,7 @@ func updatePrescriptionsScreen() {
 
 	ai, err := getOrPromptActiveIngredient(atc)
 	if err != nil {
-		pterm.Error.Printf("failed to get or create active ingredient: %v\n", err)
+		ShowErrorWithConfirm("failed to get or create active ingredient: %v\n", err)
 		return
 	}
 
@@ -45,14 +45,14 @@ func updatePrescriptionsScreen() {
 	if startStr != "" {
 		t, err := time.Parse("2006-01-02", startStr)
 		if err != nil {
-			pterm.Error.Println(err)
+			ShowErrorWithConfirm("Invalid date format: %v\n", err)
 			return
 		}
 		start = t
 	}
 
 	if err := model.UpsertPrescription(control.GetDB(), atc, dosage, freq, start); err != nil {
-		pterm.Error.Println(err)
+		ShowErrorWithConfirm("Failed to save prescription: %v\n", err)
 		return
 	}
 

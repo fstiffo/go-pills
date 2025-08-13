@@ -18,6 +18,13 @@ import (
 // criticalStockInDays is a constant used to alert if stock in days is less than this value.
 const criticalStockInDays = 15
 
+// ShowErrorWithConfirm displays an error message and waits for user confirmation before continuing.
+func ShowErrorWithConfirm(format string, args ...interface{}) {
+	pterm.Error.Printf(format, args...)
+	pterm.Info.Println("Press ENTER to continue...")
+	fmt.Scanln()
+}
+
 // formatCompactDate formats a date as MM/DD/YY for compact display
 func formatCompactDate(date time.Time) string {
 	return date.Format("01/02/06")

@@ -64,10 +64,19 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 		return db.Model(ai).Update("last_intake_update", now).Error
 	}
 
+	// If last_intake_update is equal or greater than today (comparing only dates), do nothing
+	if ai.LastIntakeUpdate.Valid {
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		lastIntakeDate := time.Date(ai.LastIntakeUpdate.Time.Year(), ai.LastIntakeUpdate.Time.Month(), ai.LastIntakeUpdate.Time.Day(), 0, 0, 0, 0, ai.LastIntakeUpdate.Time.Location())
+		if !lastIntakeDate.Before(today) {
+			return nil
+		}
+	}
+
 	calculationStart := ai.LastStockUpdate.Time
 	if !ai.LastIntakeUpdate.Valid {
-		// Per user feedback, if LastIntakeUpdate is null, use LastStockUpdate instead of Time Zero
-		return db.Model(ai).Update("last_intake_update", ai.LastStockUpdate.Time).Error
+		// Per user feedback, if LastStokUpdate is null, it is impoosibile to continue
+		return db.Model(ai).Update("last_intake_update", now).Error
 	}
 
 	// Truncate times to the beginning of the day for accurate day-by-day calculation
