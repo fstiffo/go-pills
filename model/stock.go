@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"github.com/fstiffo/go-pills/utils"
 	"gorm.io/gorm"
 )
 
@@ -66,9 +67,7 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 
 	// If last_intake_update is equal or greater than today (comparing only dates), do nothing
 	if ai.LastIntakeUpdate.Valid {
-		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-		lastIntakeDate := time.Date(ai.LastIntakeUpdate.Time.Year(), ai.LastIntakeUpdate.Time.Month(), ai.LastIntakeUpdate.Time.Day(), 0, 0, 0, 0, ai.LastIntakeUpdate.Time.Location())
-		if !lastIntakeDate.Before(today) {
+		if utils.IsDateAfterOrEqual(ai.LastIntakeUpdate.Time, now) {
 			return nil
 		}
 	}
@@ -80,8 +79,8 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 	}
 
 	// Truncate times to the beginning of the day for accurate day-by-day calculation
-	calculationStart = time.Date(calculationStart.Year(), calculationStart.Month(), calculationStart.Day(), 0, 0, 0, 0, calculationStart.Location())
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	calculationStart = utils.ToDateOnly(calculationStart)
+	today := utils.ToDateOnly(now)
 
 	var totalConsumption int64
 
@@ -92,7 +91,7 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 		for _, p := range prescriptions {
 			var startDate time.Time
 			if p.StartDate.Valid {
-				startDate = time.Date(p.StartDate.Time.Year(), p.StartDate.Time.Month(), p.StartDate.Time.Day(), 0, 0, 0, 0, p.StartDate.Time.Location())
+				startDate = utils.ToDateOnly(p.StartDate.Time)
 			} else {
 				// If no start date, treat as active from the beginning of time
 				startDate = time.Time{}
@@ -100,7 +99,7 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 
 			endDate := today.Add(24 * time.Hour) // Default to tomorrow if no end date
 			if p.EndDate.Valid {
-				endDate = time.Date(p.EndDate.Time.Year(), p.EndDate.Time.Month(), p.EndDate.Time.Day(), 0, 0, 0, 0, p.EndDate.Time.Location())
+				endDate = utils.ToDateOnly(p.EndDate.Time)
 			}
 
 			// Check if day `d` is within the prescription's active period
