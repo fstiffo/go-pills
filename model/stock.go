@@ -81,11 +81,13 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 		var dailyConsumption int64
 		// Find the prescription active on day `d`
 		for _, p := range prescriptions {
-			if !p.StartDate.Valid {
-				continue
+			var startDate time.Time
+			if p.StartDate.Valid {
+				startDate = time.Date(p.StartDate.Time.Year(), p.StartDate.Time.Month(), p.StartDate.Time.Day(), 0, 0, 0, 0, p.StartDate.Time.Location())
+			} else {
+				// If no start date, treat as active from the beginning of time
+				startDate = time.Time{}
 			}
-
-			startDate := time.Date(p.StartDate.Time.Year(), p.StartDate.Time.Month(), p.StartDate.Time.Day(), 0, 0, 0, 0, p.StartDate.Time.Location())
 
 			endDate := today.Add(24 * time.Hour) // Default to tomorrow if no end date
 			if p.EndDate.Valid {

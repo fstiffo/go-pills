@@ -47,6 +47,7 @@ func introScreen() {
 }
 
 func menu() {
+	fmt.Println()
 	pterm.
 		NewStyle(pterm.FgLightYellow, pterm.BgBlue).
 		Println(" [(S)tock Overview] [Update (P)harmacy] [Update P(R)escriptions] [(A)dd Medicine Boxes] [Re(F)resh] [(Q)uit] ")

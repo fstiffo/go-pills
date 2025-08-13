@@ -18,9 +18,9 @@ import (
 // criticalStockInDays is a constant used to alert if stock in days is less than this value.
 const criticalStockInDays = 15
 
-// formatCompactDate formats a date as MM/DD for compact display
+// formatCompactDate formats a date as MM/DD/YY for compact display
 func formatCompactDate(date time.Time) string {
-	return date.Format("01/02")
+	return date.Format("01/02/06")
 }
 
 // formatCompactDosage formats dosage without unnecessary decimals
@@ -55,11 +55,12 @@ func formatCompactText(text string, maxLength int) string {
 // ShowPrescriptionsSummaryTable retrieves and displays a comprehensive summary of all prescriptions in a formatted table.
 func ShowPrescriptionsSummaryTable() {
 	summaries := model.GetPrescriptionsSummary(control.GetDB())
-	
+
 	t := table.NewWriter()
 	t.SetTitle("Prescriptions Summary")
-	
-	// Set column alignment for comprehensive prescriptions table
+	t.SetStyle(table.StyleColoredDark)
+
+	// Set column alignment and colors for comprehensive prescriptions table
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, Align: text.AlignCenter}, // ATC
 		{Number: 2, Align: text.AlignLeft},   // Active Ingredient
@@ -70,10 +71,10 @@ func ShowPrescriptionsSummaryTable() {
 		{Number: 7, Align: text.AlignCenter}, // Last stocked
 		{Number: 8, Align: text.AlignRight},  // Stock in days
 	})
-	
+
 	// Add header
 	t.AppendHeader(table.Row{"ATC", "Ingredient", "Dosage", "Freq", "Valid From", "Last Intake", "Stocked", "Days Left"})
-	
+
 	// Add data rows
 	for _, p := range summaries {
 		dosage := formatCompactDosage(p.Dosage, p.Unit)
@@ -92,12 +93,12 @@ func ShowPrescriptionsSummaryTable() {
 		}
 		stockInDays := strconv.FormatInt(p.StockInDays, 10)
 		if p.StockInDays < criticalStockInDays {
-			stockInDays += "⚠️"
+			stockInDays = text.Colors{text.FgRed, text.Bold}.Sprint(stockInDays + "⚠️")
 		}
-		
+
 		t.AppendRow(table.Row{p.ATC, p.Name, dosage, frequency, validFrom, lastIntake, lastStock, stockInDays})
 	}
-	
+
 	fmt.Println(t.Render())
 }
 
@@ -107,6 +108,7 @@ func ShowOverviewTable() {
 
 	t := table.NewWriter()
 	t.SetTitle("Stock Overview")
+	t.SetStyle(table.StyleColoredDark)
 
 	// Set column alignment: Name left, numbers right
 	t.SetColumnConfigs([]table.ColumnConfig{
@@ -135,7 +137,7 @@ func ShowOverviewTable() {
 		}
 		stockInDays := strconv.FormatInt(p.StockInDays, 10)
 		if p.StockInDays < criticalStockInDays {
-			stockInDays += "⚠️"
+			stockInDays = text.Colors{text.FgRed, text.Bold}.Sprint(stockInDays + "⚠️")
 		}
 
 		t.AppendRow(table.Row{p.Name, dosage, frequency, lastIntake, lastStock, stockInDays})
@@ -150,6 +152,7 @@ func ShowMedicinesSummaryTable() {
 
 	t := table.NewWriter()
 	t.SetTitle("Medicines Summary")
+	t.SetStyle(table.StyleColoredDark)
 
 	// Set column alignment
 	t.SetColumnConfigs([]table.ColumnConfig{
