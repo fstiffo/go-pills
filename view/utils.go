@@ -114,7 +114,8 @@ func ShowOverviewTable() {
 	summaries := model.GetPrescriptionsSummary(control.GetDB())
 
 	t := table.NewWriter()
-	t.SetTitle("Stock Overview")
+	today := time.Now().Format("2006-01-02")
+	t.SetTitle(fmt.Sprintf("Stock Overview%58s", today))
 	t.SetStyle(table.StyleColoredDark)
 
 	// Set column alignment: Name left, numbers right
