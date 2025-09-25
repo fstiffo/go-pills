@@ -2,12 +2,12 @@ package validation
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/fstiffo/go-pills/model"
+	"github.com/shopspring/decimal"
 )
 
 var atcCodeRegex = regexp.MustCompile(`^[A-Z][0-9]{2}[A-Z][A-Z][0-9]{2}$`)
@@ -39,17 +39,20 @@ func ValidateAIC(aic string) (string, error) {
 }
 
 // ValidateDosage checks if the input string is a valid dosage.
-// A valid dosage is a positive number.
-// It returns the dosage in units * 1000.
-func ValidateDosage(input string) (int64, error) {
-	dosage, err := strconv.ParseFloat(input, 64)
+// A valid dosage is a positive number returned as a decimal value.
+func ValidateDosage(input string) (decimal.Decimal, error) {
+	trimmed := strings.TrimSpace(input)
+	if trimmed == "" {
+		return decimal.Zero, fmt.Errorf("dosage cannot be empty")
+	}
+	value, err := decimal.NewFromString(trimmed)
 	if err != nil {
-		return 0, fmt.Errorf("invalid number")
+		return decimal.Zero, fmt.Errorf("invalid number")
 	}
-	if dosage <= 0 {
-		return 0, fmt.Errorf("dosage must be positive, got %f", dosage)
+	if !value.GreaterThan(decimal.Zero) {
+		return decimal.Zero, fmt.Errorf("dosage must be positive, got %s", value.String())
 	}
-	return int64(math.Round(dosage * 1000)), nil
+	return value, nil
 }
 
 // ValidateFrequency checks if the input string is a valid frequency.

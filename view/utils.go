@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fstiffo/go-pills/control"
@@ -12,11 +13,12 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/pterm/pterm"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 // criticalStockInDays is a constant used to alert if stock in days is less than this value.
-const criticalStockInDays = 15
+var criticalStockInDays = decimal.NewFromInt(15)
 
 // ShowErrorWithConfirm displays an error message and waits for user confirmation before continuing.
 func ShowErrorWithConfirm(format string, args ...interface{}) {
@@ -31,12 +33,25 @@ func formatCompactDate(date time.Time) string {
 }
 
 // formatCompactDosage formats dosage without unnecessary decimals
-func formatCompactDosage(dosage int64, unit string) string {
-	value := float64(dosage) / 1000
-	if value == float64(int64(value)) {
-		return fmt.Sprintf("%.0f %s", value, unit)
+func formatCompactDosage(dosage decimal.Decimal, unit string) string {
+	if dosage.Equal(decimal.Zero) {
+		return fmt.Sprintf("0 %s", unit)
 	}
-	return fmt.Sprintf("%.2f %s", value, unit)
+	formatted := dosage.StringFixed(2)
+	formatted = strings.TrimRight(strings.TrimRight(formatted, "0"), ".")
+	return fmt.Sprintf("%s %s", formatted, unit)
+}
+
+func formatStockInDays(days decimal.Decimal) string {
+	if days.Equal(decimal.Zero) {
+		return "0"
+	}
+	formatted := days.Round(1).StringFixed(1)
+	formatted = strings.TrimRight(strings.TrimRight(formatted, "0"), ".")
+	if formatted == "" {
+		return "0"
+	}
+	return formatted
 }
 
 // formatCompactFrequency formats frequency in compact d format
@@ -98,8 +113,8 @@ func ShowPrescriptionsSummaryTable() {
 		if p.LastStockUpdate.Valid {
 			lastStock = formatCompactDate(p.LastStockUpdate.Time)
 		}
-		stockInDays := strconv.FormatInt(p.StockInDays, 10)
-		if p.StockInDays < criticalStockInDays {
+		stockInDays := formatStockInDays(p.StockInDays)
+		if p.StockInDays.LessThan(criticalStockInDays) {
 			stockInDays = text.Colors{text.FgRed, text.Bold}.Sprint(stockInDays + "⚠️")
 		}
 
@@ -143,8 +158,8 @@ func ShowOverviewTable() {
 		if p.LastStockUpdate.Valid {
 			lastStock = formatCompactDate(p.LastStockUpdate.Time)
 		}
-		stockInDays := strconv.FormatInt(p.StockInDays, 10)
-		if p.StockInDays < criticalStockInDays {
+		stockInDays := formatStockInDays(p.StockInDays)
+		if p.StockInDays.LessThan(criticalStockInDays) {
 			stockInDays = text.Colors{text.FgRed, text.Bold}.Sprint(stockInDays + "⚠️")
 		}
 

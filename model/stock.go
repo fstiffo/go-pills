@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/fstiffo/go-pills/utils"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 // CreateStockLog creates a StockLog entry for a medicine stocking and returns the units stocked.
-func CreateStockLog(db *gorm.DB, med Medicine, boxes int) (int64, error) {
-	units := med.Dosage * int64(med.BoxSize*boxes)
+func CreateStockLog(db *gorm.DB, med Medicine, boxes int) (decimal.Decimal, error) {
+	boxCount := decimal.NewFromInt(int64(med.BoxSize * boxes))
+	units := med.Dosage.Mul(boxCount)
 	log := StockLog{
 		MedicineID: med.ID,
 		RelatedATC: med.RelatedATC,
@@ -18,13 +20,13 @@ func CreateStockLog(db *gorm.DB, med Medicine, boxes int) (int64, error) {
 		StockedAt:  time.Now(),
 	}
 	if err := db.Create(&log).Error; err != nil {
-		return 0, err
+		return decimal.Zero, err
 	}
 	return units, nil
 }
 
 // IncrementActiveIngredientStock increments stocked units and updates the last stock update time for an active ingredient.
-func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64, reset bool) error {
+func IncrementActiveIngredientStock(db *gorm.DB, atc string, units decimal.Decimal, reset bool) error {
 	var err error
 	if reset {
 		err = db.Model(&ActiveIngredient{}).
@@ -49,44 +51,41 @@ func IncrementActiveIngredientStock(db *gorm.DB, atc string, units int64, reset 
 // UpdateStockedUnitsFromIntake updates the stocked units of an active ingredient based on prescription intake.
 func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 	now := time.Now()
-	var prescriptions []Prescription
-
-	// Find all prescriptions for the given active ingredient that could have been active
-	if err := db.Where("related_atc = ?", ai.ATC).
-		Where("(start_date is null or start_date <= ?) and (end_date is null or end_date > ?)", now, now).
-		Order("start_date asc").
-		Find(&prescriptions).Error; err != nil {
-		return err
-	}
-
-	if len(prescriptions) == 0 {
-		// If there are no prescriptions, we might still need to update the time to now
-		// to prevent re-running on an empty set.
-		return db.Model(ai).Update("last_intake_update", now).Error
-	}
-
-	// If last_intake_update is equal or greater than today (comparing only dates), do nothing
 	if ai.LastIntakeUpdate.Valid {
 		if utils.IsDateAfterOrEqual(ai.LastIntakeUpdate.Time, now) {
 			return nil
 		}
 	}
 
-	calculationStart := ai.LastStockUpdate.Time
 	if !ai.LastIntakeUpdate.Valid {
-		// Per user feedback, if LastStokUpdate is null, it is impoosibile to continue
 		return db.Model(ai).Update("last_intake_update", now).Error
 	}
 
-	// Truncate times to the beginning of the day for accurate day-by-day calculation
-	calculationStart = utils.ToDateOnly(calculationStart)
+	var calculationStart time.Time
+	if ai.LastStockUpdate.Valid {
+		calculationStart = utils.ToDateOnly(ai.LastStockUpdate.Time)
+	} else {
+		calculationStart = utils.ToDateOnly(ai.CreatedAt)
+	}
 	today := utils.ToDateOnly(now)
 
-	var totalConsumption int64
+	var prescriptions []Prescription
+	if err := db.Where("related_atc = ?", ai.ATC).
+		Where("(start_date IS NULL OR start_date <= ?) AND (end_date IS NULL OR end_date > ?)", now, now).
+		Order("start_date asc").
+		Find(&prescriptions).Error; err != nil {
+		return err
+	}
+
+	if len(prescriptions) == 0 {
+		return db.Model(ai).Update("last_intake_update", now).Error
+	}
+
+	totalConsumption := decimal.Zero
 
 	// Iterate from calculationStart up to (but not including) today
 	for d := calculationStart; d.Before(today); d = d.Add(24 * time.Hour) {
-		var dailyConsumption int64
+		var dailyConsumption decimal.Decimal
 		// Find the prescription active on day `d`
 		for _, p := range prescriptions {
 			var startDate time.Time
@@ -107,14 +106,14 @@ func UpdateStockedUnitsFromIntake(db *gorm.DB, ai *ActiveIngredient) error {
 				// Check if it's a dosing day
 				daysSinceStart := int(d.Sub(startDate).Hours() / 24)
 				if p.DosingFrequency > 0 && daysSinceStart%p.DosingFrequency == 0 {
-					dailyConsumption += p.Dosage
+					dailyConsumption = dailyConsumption.Add(p.Dosage)
 				}
 			}
 		}
-		totalConsumption += dailyConsumption
+		totalConsumption = totalConsumption.Add(dailyConsumption)
 	}
 
-	if totalConsumption > 0 {
+	if totalConsumption.GreaterThan(decimal.Zero) {
 		return db.Model(ai).Updates(map[string]interface{}{
 			"stocked_units":      gorm.Expr("stocked_units - ?", totalConsumption),
 			"last_intake_update": now,

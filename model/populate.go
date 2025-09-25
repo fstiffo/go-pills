@@ -3,8 +3,8 @@ package model
 import (
 	"fmt"
 	"log"
-	"math"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -48,11 +48,58 @@ func resetSchema(db *gorm.DB, reset bool) error {
 		}
 	}
 
-	// Migrate the schema
+	if err := migrateDecimalColumns(db); err != nil {
+		return err
+	}
+
 	if err := db.AutoMigrate(tables...); err != nil {
 		return err
 	}
 	log.Println("Schema migrated")
+	return nil
+}
+
+func migrateDecimalColumns(db *gorm.DB) error {
+	// ActiveIngredient stocked_units
+	if db.Migrator().HasColumn(&ActiveIngredient{}, "stocked_units_exact") {
+		if err := db.Migrator().DropColumn(&ActiveIngredient{}, "stocked_units"); err != nil {
+			return err
+		}
+		if err := db.Migrator().RenameColumn(&ActiveIngredient{}, "stocked_units_exact", "stocked_units"); err != nil {
+			return err
+		}
+	}
+
+	// Medicine dosage
+	if db.Migrator().HasColumn(&Medicine{}, "dosage_exact") {
+		if err := db.Migrator().DropColumn(&Medicine{}, "dosage"); err != nil {
+			return err
+		}
+		if err := db.Migrator().RenameColumn(&Medicine{}, "dosage_exact", "dosage"); err != nil {
+			return err
+		}
+	}
+
+	// Prescription dosage
+	if db.Migrator().HasColumn(&Prescription{}, "dosage_exact") {
+		if err := db.Migrator().DropColumn(&Prescription{}, "dosage"); err != nil {
+			return err
+		}
+		if err := db.Migrator().RenameColumn(&Prescription{}, "dosage_exact", "dosage"); err != nil {
+			return err
+		}
+	}
+
+	// StockLog units
+	if db.Migrator().HasColumn(&StockLog{}, "units_exact") {
+		if err := db.Migrator().DropColumn(&StockLog{}, "units"); err != nil {
+			return err
+		}
+		if err := db.Migrator().RenameColumn(&StockLog{}, "units_exact", "units"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -92,16 +139,16 @@ func populatePrescriptions(db *gorm.DB) error {
 		ingredientMap[ingredient.Name] = ingredient.ATC
 	}
 	prescriptions := []Prescription{
-		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: 100 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["allopurinolo"], Dosage: 150 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["amlodipina"], Dosage: 5 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["colecalciferolo"], Dosage: 10000 * 1000, DosingFrequency: 7},
-		{RelatedATC: ingredientMap["doxazosina"], Dosage: 2 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["insulina glargine"], Dosage: 16 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["metoprololo"], Dosage: 50 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: 1500 * 1000, DosingFrequency: 1},
-		{RelatedATC: ingredientMap["prednisone"], Dosage: int64(math.Round(7.5 * 1000)), DosingFrequency: 1},
-		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: 30 * 1000, DosingFrequency: 1},
+		{RelatedATC: ingredientMap["acido acetilsalicilico"], Dosage: decimal.NewFromInt(100), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["allopurinolo"], Dosage: decimal.NewFromInt(150), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["amlodipina"], Dosage: decimal.NewFromInt(5), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["colecalciferolo"], Dosage: decimal.NewFromInt(10000), DosingFrequency: 7},
+		{RelatedATC: ingredientMap["doxazosina"], Dosage: decimal.NewFromInt(2), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["insulina glargine"], Dosage: decimal.NewFromInt(16), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["metoprololo"], Dosage: decimal.NewFromInt(50), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["micofenolato mofetile"], Dosage: decimal.NewFromInt(1500), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["prednisone"], Dosage: decimal.RequireFromString("7.5"), DosingFrequency: 1},
+		{RelatedATC: ingredientMap["zofenopril calcio"], Dosage: decimal.NewFromInt(30), DosingFrequency: 1},
 	}
 
 	result := db.Create(&prescriptions)
@@ -119,7 +166,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Mylan S.p.A.",
 			RelatedATC: "B01AC06",
 			AIC:        "047065014",
-			Dosage:     100 * 1000,
+			Dosage:     decimal.NewFromInt(100),
 			Package:    "blister",
 			Form:       "compressa gastroresistente",
 			BoxSize:    30},
@@ -127,7 +174,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Sandoz S.p.A.",
 			RelatedATC: "M04AA01",
 			AIC:        "039060292",
-			Dosage:     300 * 1000,
+			Dosage:     decimal.NewFromInt(300),
 			Package:    "blister",
 			Form:       "compressa",
 			BoxSize:    30},
@@ -135,7 +182,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Viatris Pharms S.r.l.",
 			RelatedATC: "C08CA01",
 			AIC:        "027428010",
-			Dosage:     5 * 1000,
+			Dosage:     decimal.NewFromInt(5),
 			Package:    "blister",
 			Form:       "compressa",
 			BoxSize:    28},
@@ -143,7 +190,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "IPSO Pharma S.r.l.",
 			RelatedATC: "A11CC05",
 			AIC:        "043913019",
-			Dosage:     1000000 * 1000,
+			Dosage:     decimal.NewFromInt(1000000),
 			Package:    "flacone",
 			Form:       "gocce orali, soluzione",
 			BoxSize:    1},
@@ -151,7 +198,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Auribindo Pharma (Italia) S.r.l.",
 			RelatedATC: "C02CA04",
 			AIC:        "040243180",
-			Dosage:     4 * 1000,
+			Dosage:     decimal.NewFromInt(4),
 			Package:    "blister",
 			Form:       "compressa",
 			BoxSize:    20},
@@ -159,7 +206,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Sanofi-Aventis Deutschland GMBH",
 			RelatedATC: "A10AE04",
 			AIC:        "043192347",
-			Dosage:     450 * 1000,
+			Dosage:     decimal.NewFromInt(450),
 			Package:    "penna",
 			Form:       "sospensione iniettabile 300 unità/ml",
 			BoxSize:    3},
@@ -167,7 +214,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "DOC Generici S.r.l.",
 			RelatedATC: "C07AB02",
 			AIC:        "035054055",
-			Dosage:     100 * 1000,
+			Dosage:     decimal.NewFromInt(100),
 			Package:    "blister PVC/Al",
 			Form:       "compressa",
 			BoxSize:    30},
@@ -175,7 +222,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Tillomed Italia S.r.l.",
 			RelatedATC: "L04AA06",
 			AIC:        "045833011",
-			Dosage:     500 * 1000,
+			Dosage:     decimal.NewFromInt(500),
 			Package:    "blister PVC/Al",
 			Form:       "compressa rivestita con film",
 			BoxSize:    50},
@@ -183,7 +230,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Bruno Farmaceutici S.p.A.",
 			RelatedATC: "H02AB07",
 			AIC:        "010089047",
-			Dosage:     5 * 1000,
+			Dosage:     decimal.NewFromInt(5),
 			Package:    "blister",
 			Form:       "compressa",
 			BoxSize:    20},
@@ -191,7 +238,7 @@ func populateMedicines(db *gorm.DB) error {
 			MAH:        "Mylan S.p.A.",
 			RelatedATC: "C09AA15",
 			AIC:        "040724041",
-			Dosage:     30 * 1000,
+			Dosage:     decimal.NewFromInt(30),
 			Package:    "blister PVC/Aclar/Al",
 			Form:       "compressa rivestita con film",
 			BoxSize:    28},

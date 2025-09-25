@@ -57,6 +57,12 @@ func updatePharmacyScreen() {
 			return
 		}
 
+		ai, err := model.GetActiveIngredientByATC(db, med.RelatedATC)
+		if err != nil {
+			ShowErrorWithConfirm("failed to load active ingredient: %v\n", err)
+			continue
+		}
+
 		boxes, _ := promptAndValidate("Boxes to add (leave any prompt blank to exit)", validation.ValidateBoxSize, true)
 		if boxes == 0 {
 			continue
@@ -75,7 +81,8 @@ func updatePharmacyScreen() {
 			ShowErrorWithConfirm("failed to update stock log: %v\n", err)
 			continue
 		}
-		pterm.Success.Printf("Added %d boxes of %s", boxes, med.Name)
+		formattedUnits := formatCompactDosage(units, string(ai.Unit))
+		pterm.Success.Printf("Added %d boxes of %s (%s)", boxes, med.Name, formattedUnits)
 
 		cont, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).Show("\nAdd more?")
 		if !cont {

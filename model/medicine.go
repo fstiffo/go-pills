@@ -3,6 +3,7 @@ package model
 import (
 	"log"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +13,7 @@ type MedicineSummary struct {
 	MAH        string
 	RelatedATC string
 	AIC        string
-	Dosage     int64
+	Dosage     decimal.Decimal
 	Unit       Unit
 	Package    string
 	Form       string

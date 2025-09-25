@@ -5,6 +5,7 @@ import (
 	"github.com/fstiffo/go-pills/model"
 	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
+	"github.com/shopspring/decimal"
 )
 
 func addMedicineScreen() {
@@ -40,7 +41,7 @@ func addMedicineScreen() {
 	}
 
 	dosage, _ := promptAndValidate("Enter dosage (in "+string(ai.Unit)+")", validation.ValidateDosage, true)
-	if dosage == 0 {
+	if dosage.Equal(decimal.Zero) {
 		return
 	}
 

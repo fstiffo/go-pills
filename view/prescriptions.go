@@ -8,6 +8,7 @@ import (
 	"github.com/fstiffo/go-pills/model"
 	"github.com/fstiffo/go-pills/validation"
 	"github.com/pterm/pterm"
+	"github.com/shopspring/decimal"
 )
 
 // updatePrescriptionsScreen displays the prescriptions management screen, allowing the user to add or update a prescription.
@@ -36,7 +37,7 @@ func updatePrescriptionsScreen() {
 
 	// Gather prescription details
 	dosage, _ := promptAndValidate("Enter dosage (in "+string(ai.Unit)+")", validation.ValidateDosage, true)
-	if dosage == 0 {
+	if dosage.Equal(decimal.Zero) {
 		return
 	}
 

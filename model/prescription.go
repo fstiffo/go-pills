@@ -1,7 +1,6 @@
 package model
 
 import (
-	"cmp"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -17,12 +17,12 @@ type PrescriptionSummary struct {
 	ATC              string
 	Name             string
 	Unit             string
-	Dosage           int64
+	Dosage           decimal.Decimal
 	DosingFrequency  int
 	StartDate        sql.NullTime
 	LastIntakeUpdate sql.NullTime
 	LastStockUpdate  sql.NullTime
-	StockInDays      int64
+	StockInDays      decimal.Decimal
 }
 
 // GetPrescriptionsSummary returns a summary of all prescriptions
@@ -31,7 +31,7 @@ func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 		Prescription
 		Name             string
 		Unit             string
-		StockedUnits     int64
+		StockedUnits     decimal.Decimal
 		LastIntakeUpdate sql.NullTime
 		LastStockUpdate  sql.NullTime
 	}
@@ -47,7 +47,11 @@ func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 
 	var summaries []PrescriptionSummary
 	for _, p := range ps {
-		stockInDays := p.StockedUnits * int64(p.DosingFrequency) / p.Dosage
+		stockInDays := decimal.Zero
+		if !p.Dosage.IsZero() {
+			frequency := decimal.NewFromInt(int64(p.DosingFrequency))
+			stockInDays = p.StockedUnits.Mul(frequency).Div(p.Dosage)
+		}
 		summaries = append(summaries, PrescriptionSummary{
 			ATC:              p.RelatedATC,
 			Name:             p.Name,
@@ -67,14 +71,14 @@ func GetPrescriptionsSummary(db *gorm.DB) []PrescriptionSummary {
 
 func sortSummaries(summaries []PrescriptionSummary) []PrescriptionSummary {
 	stockCmp := func(a, b PrescriptionSummary) int {
-		return cmp.Compare(a.StockInDays, b.StockInDays)
+		return a.StockInDays.Cmp(b.StockInDays)
 	}
 	slices.SortFunc(summaries, stockCmp)
 	return summaries
 }
 
 // UpsertPrescription inserts or updates a prescription and updates the stock.
-func UpsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFrequency int, start time.Time) error {
+func UpsertPrescription(db *gorm.DB, relatedATC string, dosage decimal.Decimal, dosingFrequency int, start time.Time) error {
 	if start.After(time.Now()) {
 		return errors.New("start date cannot be in the future")
 	}
@@ -89,13 +93,15 @@ func UpsertPrescription(db *gorm.DB, relatedATC string, dosage int64, dosingFreq
 			return fmt.Errorf("start date (%v) must be after last intake update (%v)", start, ai.LastIntakeUpdate.Time)
 		}
 
-		// End the previous prescription if it exists
+		// End the previous prescription if it exists without triggering noisy "record not found" logs.
 		var existingPrescription Prescription
-		prescriptionErr := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).First(&existingPrescription).Error
-		if prescriptionErr != nil && !errors.Is(prescriptionErr, gorm.ErrRecordNotFound) {
-			return prescriptionErr
+		result := tx.Where("related_atc = ? AND end_date IS NULL", relatedATC).
+			Limit(1).
+			Find(&existingPrescription)
+		if result.Error != nil {
+			return result.Error
 		}
-		if prescriptionErr == nil {
+		if result.RowsAffected > 0 {
 			existingPrescription.EndDate = sql.NullTime{Time: start, Valid: true}
 			if err := tx.Save(&existingPrescription).Error; err != nil {
 				return err
