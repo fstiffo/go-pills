@@ -23,7 +23,8 @@ func updatePrescriptionsScreen() {
 	ShowPrescriptionsSummaryTable()
 
 	// Ask for ATC code to add or update a prescription
-	atcStr, _ := promptAndValidate("Enter ATC code to add/update a prescription (leave any prompt blank to exit)", validation.ValidateATC, true)
+	atcStr, _ := promptAndValidate("Enter ATC code to add/update a prescription (leave any prompt blank to exit)",
+		validation.ValidateATC, true)
 	if atcStr == "" {
 		return
 	}

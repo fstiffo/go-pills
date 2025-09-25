@@ -8,9 +8,9 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.6.8
 	github.com/pterm/pterm v0.12.81
 	github.com/shopspring/decimal v1.4.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	gorm.io/driver/sqlite v1.6.0
-	gorm.io/gorm v1.30.1
+	gorm.io/gorm v1.31.0
 )
 
 require (
