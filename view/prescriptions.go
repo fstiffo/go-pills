@@ -10,6 +10,11 @@ import (
 	"github.com/pterm/pterm"
 )
 
+// updatePrescriptionsScreen displays the prescriptions management screen, allowing the user to add or update a prescription.
+// It lists current prescriptions, prompts for an ATC code, retrieves or creates the corresponding active ingredient,
+// and gathers prescription details such as dosage, frequency, and start date. The function validates user input,
+// saves the prescription to the database, and displays the updated prescription summary. If any step fails or is cancelled,
+// the function exits gracefully with appropriate feedback.
 func updatePrescriptionsScreen() {
 	clearScreen()
 

@@ -7,7 +7,17 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// WaitForCommand waits for a command from the user
+// WaitForCommand prompts the user to enter a command interactively and executes the corresponding action.
+// It continues to prompt until a valid command is entered or an exit condition is met.
+// Supported commands:
+//   - 's': Show overview
+//   - 'p': Update pharmacy
+//   - 'r': Update prescription
+//   - 'a': Add medicine
+//   - 'f': Refresh
+//   - 'q': Exit
+//
+// Returns an error if input fails or if the command handler returns an error.
 func WaitForCommand() error {
 	for {
 		input, err := pterm.DefaultInteractiveTextInput.Show("Choose a command")
@@ -40,6 +50,9 @@ func WaitForCommand() error {
 	}
 }
 
+// handleCommand processes the given Command and updates the application state accordingly.
+// It sets the current screen based on the command, handles data refresh, and manages exit logic.
+// Returns an error if the Exit command is received or if a refresh operation fails.
 func handleCommand(c Command) error {
 	appState.lastCommand = c
 	switch c {

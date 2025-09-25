@@ -21,9 +21,9 @@ Commands are entered by typing a letter and pressing Enter rather than using fun
 
 - `(S)ummary` – show remaining stock and next doses.
 - `(P)harmacy` – update pharmacy stock.
-- `(R)escriptions` – update prescriptions.
+- `P(R)escriptions` – update prescriptions.
 - `(A)dd` – add medicine boxes.
-- `(F)resh` – refresh summary.
+- `Re(F)resh` – refresh summary.
 - `(Q)uit` – exit the application.
 
 ## Data Model Overview
@@ -42,3 +42,4 @@ Commands are entered by typing a letter and pressing Enter rather than using fun
 1. Fork the repository and create a feature branch.
 2. Run `go fmt` and `go test ./...` before submitting.
 3. Open a pull request describing your changes.
+4. Review the detailed contributor guide in [`AGENTS.md`](AGENTS.md) before filing your PR.

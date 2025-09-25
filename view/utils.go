@@ -198,6 +198,10 @@ func ShowMedicinesSummaryTable() {
 	fmt.Println(t.Render())
 }
 
+// getOrPromptActiveIngredient attempts to retrieve an ActiveIngredient by its ATC code.
+// If the ingredient is found, it returns the corresponding model.
+// If not found, it prompts the user to add the missing ingredient and inserts it into the database.
+// Returns an error if an unexpected issue occurs during retrieval or insertion.
 func getOrPromptActiveIngredient(atc string) (*model.ActiveIngredient, error) {
 	ai, err := model.GetActiveIngredientByATC(control.GetDB(), atc)
 	if err == nil {
@@ -235,6 +239,11 @@ func promptAndInsertActiveIngredient(atc string) (*model.ActiveIngredient, error
 	return newAI, nil
 }
 
+// promptAndValidate prompts the user for input using the provided prompt string,
+// then validates the input using the given validateFunc function. If the input is empty
+// and emptyIsValid is true, it returns the zero value of type T and nil error.
+// If validateFunc returns an error, the error is displayed and the prompt is repeated.
+// Returns the validated value of type T and an error, if any.
 func promptAndValidate[T any](prompt string, validateFunc func(string) (T, error), emptyIsValid bool) (T, error) {
 	for {
 		input, _ := pterm.DefaultInteractiveTextInput.Show(prompt)

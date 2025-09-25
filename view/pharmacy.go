@@ -9,6 +9,11 @@ import (
 
 const backOption = "__BACK__"
 
+// updatePharmacyScreen displays an interactive screen for updating the pharmacy's medicine stock.
+// It retrieves the list of medicines from the database, allows the user to select a medicine,
+// prompts for the number of boxes to add, and updates the stock accordingly. The function also
+// handles cases where no medicines are available, validates user input, and provides options to
+// continue adding stock or exit. Errors encountered during database operations are shown to the user.
 func updatePharmacyScreen() {
 	clearScreen()
 
